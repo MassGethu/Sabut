@@ -144,7 +144,7 @@ def claims(db):
 def action_history(db, claim_id):
     rows = db.execute(
         "SELECT id, action, reason, actor, timestamp, overrides_recommendation, recommendation "
-        "FROM actions WHERE claim_id = ? ORDER BY id DESC", (claim_id,)
+        "FROM actions WHERE claim_id = ? ORDER BY id", (claim_id,)
     )
     return [
         {
@@ -174,7 +174,7 @@ def review_requests(db, claim_id):
     return [
         {**dict(row), "simulated": True}
         for row in db.execute(
-            "SELECT id, reason, language, timestamp FROM review_requests WHERE claim_id = ? ORDER BY id DESC", (claim_id,)
+            "SELECT id, reason, language, timestamp FROM review_requests WHERE claim_id = ? ORDER BY id", (claim_id,)
         )
     ]
 
