@@ -6,13 +6,18 @@ import { SourceTag, Tag } from "./Badges";
 
 export function flagText(f: QualityFlag): string {
   if (typeof f === "string") return humanize(f);
-  return f.message || humanize(f.code) || JSON.stringify(f);
+  const text = typeof f.detail === "string" ? f.detail : typeof f.message === "string" ? f.message : "";
+  return text ? `${humanize(f.code)}: ${text}` : humanize(f.code) || JSON.stringify(f);
 }
 
 /** Provenance block that sits beside each chart. */
 export function Provenance({ evidence }: { evidence: EvidenceRecord }) {
   const settings = evidence.acquisition_settings ?? {};
-  const entries = Object.entries(settings).filter(([, v]) => v !== null && v !== undefined && v !== "");
+  const all = Object.entries(settings).filter(([, v]) => v !== null && v !== undefined && v !== "");
+  const PRIMARY = ["provider", "collection", "coefficient", "orbit_state", "relative_orbit", "polarizations", "note"];
+  const entries = all.filter(([k]) => PRIMARY.includes(k));
+  const extra = all.filter(([k]) => !PRIMARY.includes(k));
+  const show = (v: unknown) => (Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v));
   return (
     <dl className="provenance">
       <div>
@@ -41,12 +46,40 @@ export function Provenance({ evidence }: { evidence: EvidenceRecord }) {
           <strong>{evidence.usable_count}</strong> of {evidence.observations?.length ?? 0} acquisitions
         </dd>
       </div>
+      {typeof evidence.feature_processing === "string" ? (
+        <div>
+          <dt>Feature processing</dt>
+          <dd className="mono">{evidence.feature_processing}</dd>
+        </div>
+      ) : null}
+      {typeof evidence.plot_pixels === "number" ? (
+        <div>
+          <dt>Plot pixels</dt>
+          <dd>
+            {evidence.plot_pixels}
+            {evidence.boundary_usable === false ? " · boundary unusable" : ""}
+          </dd>
+        </div>
+      ) : null}
       {entries.map(([k, v]) => (
         <div key={k}>
           <dt>{humanize(k)}</dt>
-          <dd className="mono">{Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v)}</dd>
+          <dd className="mono">{show(v)}</dd>
         </div>
       ))}
+      {extra.length ? (
+        <details className="prov-more">
+          <summary>Processing settings ({extra.length})</summary>
+          <dl>
+            {extra.map(([k, v]) => (
+              <div key={k}>
+                <dt>{humanize(k)}</dt>
+                <dd className="mono">{show(v)}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      ) : null}
       {evidence.geometry_hash ? (
         <div>
           <dt>Geometry hash</dt>
@@ -74,7 +107,11 @@ export function QualityGateView({ evidence }: { evidence: EvidenceRecord }) {
   const failed = gate?.failed_criterion ?? null;
   const rows = gate
     ? [
-        { key: "boundary_quality", label: "Usable plot boundary", detail: "Boundary not flagged by the extraction" },
+        {
+          key: "boundary_quality",
+          label: "Usable plot boundary",
+          detail: failed === "boundary_quality" ? "The extraction flagged this boundary — see the quality flags below" : "Boundary not flagged by the extraction",
+        },
         {
           key: "insufficient_usable_dates",
           label: `≥ ${gate.min_usable_dates} distinct usable dates`,
@@ -119,12 +156,12 @@ export function QualityGateView({ evidence }: { evidence: EvidenceRecord }) {
       ) : null}
       {flags.length ? (
         <div className="flags">
-          Quality flags:{" "}
-          {flags.map((f, i) => (
-            <Tag key={i} tone="warn">
-              {flagText(f)}
-            </Tag>
-          ))}
+          <span className="eyebrow">Quality flags</span>
+          <ul>
+            {flags.map((f, i) => (
+              <li key={i}>{flagText(f)}</li>
+            ))}
+          </ul>
         </div>
       ) : null}
     </div>

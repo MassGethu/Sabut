@@ -438,3 +438,14 @@ p { margin: 0 0 8px; }
 
 .chart-compact .axis-text, .chart-compact .axis-label { font-size: 15px; }
 .alloc-chip { font-size: 15px; padding: 5px 12px; }
+
+.flags ul { margin: 2px 0 0; padding-left: 16px; }
+.flags li { color: var(--warn); }
+.retro-note { font-size: 12.5px; background: var(--warn-bg); padding: 6px 10px; border-radius: 6px; }
+
+.prov-more { grid-column: 1 / -1; }
+.prov-more summary { cursor: pointer; font-weight: 600; font-size: 12px; }
+.prov-more dl { margin: 6px 0 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 12px; }
+.prov-more dl div { display: contents; }
+.prov-more dt { color: var(--muted); font-size: 11px; }
+.prov-more dd { margin: 0; word-break: break-word; }

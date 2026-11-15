@@ -61,7 +61,11 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   }
   if (!res.ok) {
     const detail = data && typeof data === "object" ? detailText((data as { detail?: unknown }).detail) : "";
-    throw new ApiError(res.status, detail || `The API returned ${res.status} ${res.statusText}.`);
+    const fallback =
+      res.status >= 500
+        ? `The Sabūt API returned ${res.status} with no detail. Check that the local FastAPI service is running.`
+        : `The API returned ${res.status} ${res.statusText}.`;
+    throw new ApiError(res.status, detail || fallback);
   }
   return data as T;
 }

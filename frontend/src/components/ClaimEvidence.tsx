@@ -120,6 +120,12 @@ function EvidenceBlock({
   );
 }
 
+function retroNote(evidence: EvidenceRecord | null): string | null {
+  const r = evidence?.retrospective;
+  if (r && typeof r === "object" && typeof (r as { note?: unknown }).note === "string") return (r as { note: string }).note;
+  return null;
+}
+
 function Retrospective({ detail, evidence }: { detail: ClaimDetail; evidence: EvidenceRecord | null }) {
   const harvest = detail.reported_harvest_date!;
   const hMs = utcMs(harvest);
@@ -158,17 +164,25 @@ function Retrospective({ detail, evidence }: { detail: ClaimDetail; evidence: Ev
           <small className="muted">{detail.reason}</small>
         </div>
       </div>
+      {retroNote(evidence) ? <p className="retro-note">{retroNote(evidence)}</p> : null}
       <p className="retro-explain">
         The field can no longer be inspected for its sowing method after harvest. The archive still holds radar
         acquisitions taken during the sowing window, before the reported harvest. They show whether usable evidence
         exists and what it looked like; archive availability alone cannot establish the sowing method.
+      </p>
+      <p className="retro-explain">
+        <strong>Next step:</strong> {actionLabel(detail.next_action)}.{" "}
+        {detail.evidence?.source_kind === "simulated" && evidence?.source_kind === "sentinel1_real"
+          ? "This recommendation comes from the labeled workflow simulation. "
+          : ""}
+        {evidence?.source_kind === "sentinel1_real" && evidence.model?.dsr_score == null
+          ? "The real pre-harvest archive is unscored, so it supports the review with dated scene evidence but not a sowing-method score."
+          : ""}
         {detail.next_action === "request_records"
-          ? " Here the API asks for dated sowing records to complete the review."
-          : detail.next_action === "desk_review"
-            ? " Here the API judges the archive sufficient for a desk review."
-            : detail.next_action === "request_field_visit"
-              ? " Here the API still suggests a visit; the team can check stubble and ask for records."
-              : " Here the API asks for a corrected boundary before the archive can be used."}
+          ? " Dated sowing records are needed to complete the review."
+          : detail.next_action === "request_boundary_correction"
+            ? " A corrected boundary is needed before the archive can be used."
+            : ""}
       </p>
     </section>
   );
@@ -184,7 +198,13 @@ export function ClaimEvidence({ detail }: { detail: ClaimDetail }) {
         <div className="claim-title">
           <h2>
             Claim {detail.claim_id}
-            {detail.farmer_name ? <span className="muted"> · {detail.farmer_name} (fictional)</span> : null}
+            {detail.farmer_name ? (
+              <span className="muted">
+                {" "}
+                · {detail.farmer_name}
+                {/fictional/i.test(detail.farmer_name) ? "" : " (fictional)"}
+              </span>
+            ) : null}
           </h2>
           <span className="muted">
             {detail.season} · claims <strong>{detail.claimed_method}</strong>

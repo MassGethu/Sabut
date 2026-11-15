@@ -90,7 +90,10 @@ export default function App() {
       const ds = await Promise.all(q.items.map((i) => api.claim(i.claim_id, b)));
       if (my !== seq.current) return;
       setDetails(Object.fromEntries(ds.map((d) => [d.claim_id, d])));
-      setSelectedId((cur) => (cur && q.items.some((i) => i.claim_id === cur) ? cur : q.items[0]?.claim_id ?? null));
+      // Keep a deep-linked selection while the workspace is still empty.
+      setSelectedId((cur) =>
+        cur && (!q.items.length || q.items.some((i) => i.claim_id === cur)) ? cur : q.items[0]?.claim_id ?? null,
+      );
     } catch (err) {
       if (my !== seq.current) return;
       setError(err instanceof ApiError ? err.message : String(err));

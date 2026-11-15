@@ -58,7 +58,7 @@ export interface Gap {
   reason: string;
 }
 
-export type QualityFlag = string | { code?: string; message?: string; [k: string]: unknown };
+export type QualityFlag = string | { code?: string; detail?: string; message?: string; [k: string]: unknown };
 
 export interface QualityGate {
   min_usable_dates: number;
