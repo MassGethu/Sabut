@@ -452,3 +452,4 @@ p { margin: 0 0 8px; }
 .row-sabut td { background: #eef5f0; }
 .compare-real { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line-2); }
 .compare-col .rec-block { margin-top: 10px; }
+.fc-override { margin-top: 8px !important; background: #fff; border-left: 4px solid var(--brand); padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 15px; }
