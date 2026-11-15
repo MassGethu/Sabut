@@ -10,6 +10,7 @@ import { BudgetControl, Queue } from "./components/Queue";
 import { FarmerPreview } from "./views/FarmerPreview";
 import { ResultsView } from "./views/ResultsView";
 import { Credits } from "./components/Credits";
+import { ImpactStrip } from "./components/ImpactStrip";
 
 type View = "officer" | "farmer" | "results";
 
@@ -300,6 +301,7 @@ export default function App() {
           </aside>
 
           <section className="workspace">
+            <ImpactStrip items={queue} />
             <PlotMap
               plots={plots}
               selectedId={selectedId}
