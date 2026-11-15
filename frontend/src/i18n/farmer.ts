@@ -38,6 +38,10 @@ interface FarmerStrings {
   receiptSimulated: string;
   previous: string;
   simulatedNote: string;
+  msgSender: string;
+  msgHowToContest: string;
+  msgReplyPlaceholder: string;
+  msgReceipt: (id: string | number) => string;
 }
 
 export const FARMER_TEXT: Record<Language, FarmerStrings> = {
@@ -98,6 +102,10 @@ export const FARMER_TEXT: Record<Language, FarmerStrings> = {
     receiptSimulated: "यह डेमो के लिए नकली (सिम्युलेटेड) अनुरोध है।",
     previous: "पिछले अनुरोध",
     simulatedNote: "डेमो: किसान और दावा काल्पनिक हैं।",
+    msgSender: "कृषि विभाग · सबूत (डेमो)",
+    msgHowToContest: "कुछ ग़लत है? इस संदेश का जवाब देकर सुधार का अनुरोध करें। नीचे से कोई कारण चुनें या अपना कारण लिखें।",
+    msgReplyPlaceholder: "अपना कारण लिखें…",
+    msgReceipt: (id) => `आपका अनुरोध दर्ज हो गया। रसीद संख्या #${id}। अधिकारी इसे देखेंगे।`,
   },
   pa: {
     languageName: "ਪੰਜਾਬੀ",
@@ -156,6 +164,10 @@ export const FARMER_TEXT: Record<Language, FarmerStrings> = {
     receiptSimulated: "ਇਹ ਡੈਮੋ ਲਈ ਨਕਲੀ (ਸਿਮੂਲੇਟਡ) ਬੇਨਤੀ ਹੈ।",
     previous: "ਪਿਛਲੀਆਂ ਬੇਨਤੀਆਂ",
     simulatedNote: "ਡੈਮੋ: ਕਿਸਾਨ ਅਤੇ ਦਾਅਵਾ ਕਾਲਪਨਿਕ ਹਨ।",
+    msgSender: "ਖੇਤੀਬਾੜੀ ਵਿਭਾਗ · ਸਬੂਤ (ਡੈਮੋ)",
+    msgHowToContest: "ਕੁਝ ਗ਼ਲਤ ਹੈ? ਇਸ ਸੁਨੇਹੇ ਦਾ ਜਵਾਬ ਦੇ ਕੇ ਸੁਧਾਰ ਦੀ ਬੇਨਤੀ ਕਰੋ। ਹੇਠਾਂ ਤੋਂ ਕੋਈ ਕਾਰਨ ਚੁਣੋ ਜਾਂ ਆਪਣਾ ਕਾਰਨ ਲਿਖੋ।",
+    msgReplyPlaceholder: "ਆਪਣਾ ਕਾਰਨ ਲਿਖੋ…",
+    msgReceipt: (id) => `ਤੁਹਾਡੀ ਬੇਨਤੀ ਦਰਜ ਹੋ ਗਈ। ਰਸੀਦ ਨੰਬਰ #${id}। ਅਧਿਕਾਰੀ ਇਸ ਨੂੰ ਦੇਖਣਗੇ।`,
   },
   en: {
     languageName: "English",
@@ -214,6 +226,10 @@ export const FARMER_TEXT: Record<Language, FarmerStrings> = {
     receiptSimulated: "This request is simulated for the demo.",
     previous: "Previous requests",
     simulatedNote: "Demo: The farmer and claim are fictional.",
+    msgSender: "Agriculture Dept · Sabūt (demo)",
+    msgHowToContest: "Something wrong? Reply to this message to request a correction. Pick a reason below or type your own.",
+    msgReplyPlaceholder: "Type your reason…",
+    msgReceipt: (id) => `Your request is recorded. Receipt #${id}. An officer will review it.`,
   },
 };
 

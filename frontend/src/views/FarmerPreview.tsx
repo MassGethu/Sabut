@@ -4,6 +4,7 @@ import type { ClaimDetail, Language, ReviewReceipt } from "../api/types";
 import { fmtLocal } from "../format";
 import { FARMER_TEXT, LANGUAGE_NAME } from "../i18n/farmer";
 import { actionLabel, statusLabel } from "../i18n/labels";
+import { PhoneMessage } from "../components/PhoneMessage";
 
 interface Props {
   claims: ClaimDetail[];
@@ -28,6 +29,7 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
   const [reason, setReason] = useState("");
   const [touched, setTouched] = useState(false);
   const [submit, setSubmit] = useState<Submit>({ state: "idle" });
+  const [mode, setMode] = useState<"card" | "phone">("card");
 
   useEffect(() => {
     setSubmit({ state: "idle" });
@@ -100,6 +102,17 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
               ))}
             </div>
           </fieldset>
+          <fieldset className="field language-field">
+            <legend>Show as</legend>
+            <div className="seg">
+              {(["card", "phone"] as const).map((m) => (
+                <label key={m} className={mode === m ? "on" : ""}>
+                  <input type="radio" name="farmer-mode" value={m} checked={mode === m} onChange={() => setMode(m)} />
+                  {m === "card" ? "Card" : "Phone message"}
+                </label>
+              ))}
+            </div>
+          </fieldset>
         </div>
         <details className="officer-gloss">
           <summary>Officer view of this card (English)</summary>
@@ -111,6 +124,22 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
         </details>
       </section>
 
+      {mode === "phone" ? (
+        <PhoneMessage
+          t={t}
+          language={language}
+          detail={detail}
+          step={step}
+          overridden={overridden}
+          recordedAt={recorded?.timestamp ?? null}
+          reason={reason}
+          onReason={setReason}
+          sending={submit.state === "sending"}
+          error={submit.state === "error" ? submit.message : null}
+          latest={submit.state === "sent" ? submit.receipt : null}
+          onSend={send}
+        />
+      ) : (
       <article className={`farmer-card lang-${language}`} lang={language} aria-label="Farmer evidence card">
         <header className="fc-head">
           <div>
@@ -249,6 +278,7 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
           </section>
         ) : null}
       </article>
+      )}
     </div>
   );
 }
