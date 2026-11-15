@@ -167,28 +167,51 @@ def import_claims(db, data):
         raise ValueError("Expected a GeoJSON FeatureCollection with a features array.")
     if "crs" in data and data["crs"] is not None:
         raise ValueError("Use WGS84 GeoJSON longitude and latitude, without a custom CRS.")
-    accepted = {}
+    existing = {
+        row["claim_id"]: (row["season"], row["geometry_hash"])
+        for row in db.execute("SELECT claim_id, season, geometry_hash FROM claims")
+    }
+    pending = {}
     errors = []
+    revision_error = "This claim ID already has a different boundary or season. Use a new claim ID for the revision."
     for index, feature in enumerate(data["features"]):
         properties = feature.get("properties") if isinstance(feature, dict) else None
         claim_id = properties.get("claim_id") if isinstance(properties, dict) else None
         try:
             claim_id, season, method, name, acres, harvest, geometry, digest = _parse_feature(feature)
-            existing = db.execute(
-                "SELECT season, geometry_hash FROM claims WHERE claim_id = ?", (claim_id,)
-            ).fetchone()
-            if existing and (existing["geometry_hash"] != digest or existing["season"] != season):
-                raise ValueError("This claim ID already has a different boundary or season. Use a new claim ID for the revision.")
-            db.execute("""
-                INSERT INTO claims VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(claim_id) DO UPDATE SET claimed_method = excluded.claimed_method,
-                    farmer_name = excluded.farmer_name, claimed_acres = excluded.claimed_acres,
-                    reported_harvest_date = excluded.reported_harvest_date
-            """, (claim_id, season, method, name, acres, harvest, json.dumps(geometry), digest))
-            accepted[claim_id] = None
+            known = existing.get(claim_id)
+            if known is not None and known != (season, digest):
+                raise ValueError(revision_error)
+            existing[claim_id] = (season, digest)
+            if claim_id not in pending:
+                pending[claim_id] = ([], None)
+            indices, _ = pending[claim_id]
+            indices.append(index)
+            pending[claim_id] = (indices, (claim_id, season, method, name, acres, harvest, json.dumps(geometry), digest))
         except (ValueError, OverflowError) as exc:
             errors.append({"index": index, "claim_id": claim_id if isinstance(claim_id, str) else None, "message": str(exc)})
-    return {"imported_ids": list(accepted), "errors": errors}
+
+    accepted = []
+    entries = list(pending.items())
+    for start in range(0, len(entries), 100):
+        batch = entries[start:start + 100]
+        placeholders = ", ".join(["(?, ?, ?, ?, ?, ?, ?, ?)"] * len(batch))
+        params = tuple(value for _, (_, row) in batch for value in row)
+        rows = db.execute(f"""
+            INSERT INTO claims VALUES {placeholders}
+            ON CONFLICT(claim_id) DO UPDATE SET claimed_method = excluded.claimed_method,
+                farmer_name = excluded.farmer_name, claimed_acres = excluded.claimed_acres,
+                reported_harvest_date = excluded.reported_harvest_date
+            WHERE claims.season = excluded.season AND claims.geometry_hash = excluded.geometry_hash
+            RETURNING claim_id
+        """, params)
+        saved = {row["claim_id"] for row in rows}
+        for claim_id, (indices, _) in batch:
+            if claim_id in saved:
+                accepted.append(claim_id)
+            else:
+                errors.extend({"index": i, "claim_id": claim_id, "message": revision_error} for i in indices)
+    return {"imported_ids": accepted, "errors": sorted(errors, key=lambda error: error["index"])}
 
 
 def claims(db):
