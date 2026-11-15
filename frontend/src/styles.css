@@ -819,3 +819,16 @@ summary { align-content: center; }
 .q-item.q-compact .q-id { font-size: 13px; }
 .q-item.q-compact .q-compare { padding: 0 6px; }
 .queue-more { align-self: flex-start; font-size: 12px; }
+
+/* Credits menu */
+.credits { position: relative; }
+.credits > summary { list-style: none; cursor: pointer; }
+.credits > summary::-webkit-details-marker { display: none; }
+.credits-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 1000;
+  min-width: 250px; margin: 0; padding: 6px; list-style: none;
+  background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+.credits-menu a { display: block; padding: 7px 10px; border-radius: 6px; color: var(--ink); text-decoration: none; font-size: 13px; }
+.credits-menu a:hover, .credits-menu a:focus-visible { background: var(--desk-bg); color: var(--brand); }

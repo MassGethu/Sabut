@@ -9,6 +9,7 @@ import { PlotMap, type MapPlot } from "./components/PlotMap";
 import { BudgetControl, Queue } from "./components/Queue";
 import { FarmerPreview } from "./views/FarmerPreview";
 import { ResultsView } from "./views/ResultsView";
+import { Credits } from "./components/Credits";
 
 type View = "officer" | "farmer" | "results";
 
@@ -250,6 +251,7 @@ export default function App() {
         </nav>
         <div className="status-area">
           <span className="persona">Meena · ADO, Haryana (fictional)</span>
+          <Credits />
           {api.mode === "fixtures" ? (
             <span className="mode mode-fixture" title="Contract-shaped sample payloads, not live evidence">
               Fixture mode
