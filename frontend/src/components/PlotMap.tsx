@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { actionLabel, statusLabel } from "../i18n/labels";
 import { fmtDate, fmtNum } from "../format";
 import { seasonColor, seasonGradientCss, vvAt, type SeasonPoint } from "../season";
-import { centroid, depotFor, planRoute, type LatLng, type VisitRoute } from "../route";
+import { visitRouteFor, type LatLng, type VisitRoute } from "../route";
 
 export interface MapPlot {
   id: string;
@@ -231,14 +231,7 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
   }
 
   // Today's visit route: a loop from the (fictional) block office through every budgeted plot.
-  const route: VisitRoute | null = useMemo(() => {
-    const points = plots.map((p) => centroid(p.geometry)).filter((c): c is LatLng => c !== null);
-    const stops = plots
-      .filter((p) => p.inBudget)
-      .map((p) => ({ id: p.id, at: centroid(p.geometry) }))
-      .filter((s): s is { id: string; at: LatLng } => s.at !== null);
-    return stops.length && points.length ? planRoute(depotFor(points), stops) : null;
-  }, [plots]);
+  const route: VisitRoute | null = useMemo(() => visitRouteFor(plots), [plots]);
 
   useEffect(() => {
     const layer = routeLayer.current;

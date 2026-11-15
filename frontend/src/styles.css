@@ -902,3 +902,7 @@ summary { align-content: center; }
   .season-bar { grid-template-columns: auto 1fr auto; }
   .season-key { grid-column: 1 / -1; }
 }
+
+/* Field sheet export */
+.field-sheet { display: flex; align-items: center; gap: 6px; margin: -4px 0 10px; flex-wrap: wrap; }
+.field-sheet .muted { margin-right: auto; }

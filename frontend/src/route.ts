@@ -86,3 +86,13 @@ export function planRoute(depot: LatLng, stops: RouteStop[]): VisitRoute {
   }
   return { depot, stops: order, km: loopKm(depot, order) };
 }
+
+/** Today's route for a batch: depot from every plot, stops at the budgeted ones. Shared by the map and the field sheet. */
+export function visitRouteFor(plots: { id: string; geometry: GeoJSON.Geometry; inBudget: boolean }[]): VisitRoute | null {
+  const points = plots.map((p) => centroid(p.geometry)).filter((c): c is LatLng => c !== null);
+  const stops = plots
+    .filter((p) => p.inBudget)
+    .map((p) => ({ id: p.id, at: centroid(p.geometry) }))
+    .filter((s): s is RouteStop => s.at !== null);
+  return stops.length && points.length ? planRoute(depotFor(points), stops) : null;
+}

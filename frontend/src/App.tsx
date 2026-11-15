@@ -7,6 +7,7 @@ import { Compare } from "./components/Compare";
 import { ImportBar } from "./components/ImportBar";
 import { PlotMap, type MapPlot } from "./components/PlotMap";
 import { BudgetControl, Queue } from "./components/Queue";
+import { FieldSheet } from "./components/FieldSheet";
 import { FarmerPreview } from "./views/FarmerPreview";
 import { ResultsView } from "./views/ResultsView";
 import { Credits } from "./components/Credits";
@@ -283,6 +284,7 @@ export default function App() {
           <aside className="sidebar">
             <ImportBar onImported={onImported} />
             <BudgetControl budget={budget} items={queue} loading={loading} onChange={changeBudget} />
+            <FieldSheet items={queue} details={details} />
             <div className="queue-head">
               <h1 id="claim-queue" tabIndex={-1}>Claim queue</h1>
               <span className="muted small">{queue.length} claim{queue.length === 1 ? "" : "s"}</span>
