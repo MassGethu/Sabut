@@ -282,8 +282,13 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
     };
   }, []);
 
+  // Resize to the new box, then fit every plot when entering full screen (runs only on toggle).
   useEffect(() => {
-    map.current?.invalidateSize();
+    const m = map.current;
+    if (!m) return;
+    m.invalidateSize();
+    const g = plotLayer.current;
+    if (full && g && plots.length) m.fitBounds(g.getBounds(), { padding: [48, 48], maxZoom: 18 });
   }, [full]);
 
   function toggleFull() {

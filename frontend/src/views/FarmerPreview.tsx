@@ -40,7 +40,7 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
   if (!detail) {
     return (
       <div className="farmer-empty panel">
-        <h1>Farmer preview</h1>
+        <h1>Farmer Preview</h1>
         <p>Load the demo batch in the officer workspace first.</p>
       </div>
     );
@@ -75,7 +75,7 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
   return (
     <div className="farmer-layout">
       <section className="farmer-controls panel" aria-label="Preview settings">
-        <h1>Farmer preview</h1>
+        <h1>Farmer Preview</h1>
         <p className="muted small">
           A local preview of the card a farmer would receive. Farmers and claims are fictional; correction requests are
           simulated but saved through the API.
@@ -108,7 +108,7 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
               {(["card", "phone"] as const).map((m) => (
                 <label key={m} className={mode === m ? "on" : ""}>
                   <input type="radio" name="farmer-mode" value={m} checked={mode === m} onChange={() => setMode(m)} />
-                  {m === "card" ? "Card" : "Phone message"}
+                  {m === "card" ? "Card" : "Phone"}
                 </label>
               ))}
             </div>

@@ -249,7 +249,7 @@ export default function App() {
             Officer workspace
           </a>
           <a href={viewHref("farmer", farmerClaim ?? selectedId)} aria-current={view === "farmer" ? "page" : undefined}>
-            Farmer preview
+            Farmer Preview
           </a>
           <a href={viewHref("results")} aria-current={view === "results" ? "page" : undefined}>
             Evidence &amp; Results

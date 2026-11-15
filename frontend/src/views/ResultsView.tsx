@@ -150,7 +150,7 @@ function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
       {isObj(report.split) ? (
         <div className="report-block">
           <h3>Evaluation method</h3>
-          <JsonTree value={report.split} />
+          <SplitSummary split={report.split} />
         </div>
       ) : method !== undefined ? (
         <div className="report-block">
@@ -175,6 +175,79 @@ function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
         <JsonTree value={report} />
       </details>
     </section>
+  );
+}
+
+const SPLITS = ["train", "validation", "test"] as const;
+
+/** The held-out split as labelled facts plus one rows table, instead of a raw key tree. */
+function SplitSummary({ split }: { split: Record<string, Json> }) {
+  const rows = isObj(split.rows) ? split.rows : null;
+  const dsr = isObj(split.dsr_rows) ? split.dsr_rows : null;
+  const num = (o: Record<string, Json> | null, k: string) => (o && typeof o[k] === "number" ? (o[k] as number) : null);
+  if (!rows) return <JsonTree value={split} />;
+  const total = (o: Record<string, Json> | null) => SPLITS.reduce((sum, k) => sum + (num(o, k) ?? 0), 0);
+  return (
+    <div className="split">
+      <dl className="split-facts">
+        {typeof split.method === "string" ? (
+          <div>
+            <dt>Method</dt>
+            <dd>{split.method}</dd>
+          </div>
+        ) : null}
+        {split.seed !== undefined ? (
+          <div>
+            <dt>Random seed</dt>
+            <dd className="mono">{fmtVal(split.seed)}</dd>
+          </div>
+        ) : null}
+        {typeof split.same_split_for_all_tracks === "boolean" ? (
+          <div>
+            <dt>Same split for every track</dt>
+            <dd>{split.same_split_for_all_tracks ? "Yes" : "No"}</dd>
+          </div>
+        ) : null}
+        {typeof split.geographic_separation === "string" ? (
+          <div>
+            <dt>Geographic separation</dt>
+            <dd>{split.geographic_separation}</dd>
+          </div>
+        ) : null}
+      </dl>
+      <table className="split-table">
+        <thead>
+          <tr>
+            <th scope="col">Split</th>
+            <th scope="col" className="num">Plots</th>
+            {dsr ? <th scope="col" className="num">DSR plots</th> : null}
+            {dsr ? <th scope="col" className="num">DSR share</th> : null}
+          </tr>
+        </thead>
+        <tbody>
+          {SPLITS.map((k) => {
+            const n = num(rows, k);
+            const d = num(dsr, k);
+            return (
+              <tr key={k}>
+                <th scope="row">{k[0].toUpperCase() + k.slice(1)}</th>
+                <td className="num">{fmtNum(n, 0)}</td>
+                {dsr ? <td className="num">{fmtNum(d, 0)}</td> : null}
+                {dsr ? <td className="num">{n && d !== null ? `${Math.round((d / n) * 100)}%` : "—"}</td> : null}
+              </tr>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">Total</th>
+            <td className="num">{fmtNum(total(rows), 0)}</td>
+            {dsr ? <td className="num">{fmtNum(total(dsr), 0)}</td> : null}
+            {dsr ? <td className="num">{total(rows) ? `${Math.round((total(dsr) / total(rows)) * 100)}%` : "—"}</td> : null}
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   );
 }
 
