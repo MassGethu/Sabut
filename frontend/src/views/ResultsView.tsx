@@ -9,31 +9,8 @@ import { SignalChart } from "../components/SignalChart";
 type Json = unknown;
 const isObj = (v: Json): v is Record<string, Json> => !!v && typeof v === "object" && !Array.isArray(v);
 
-/** Find the first value whose key matches one of the candidates (case-insensitive), searching nested objects. */
-function pickPath(
-  obj: Json,
-  keys: string[],
-  depth = 3,
-  path = "",
-  skip: RegExp | null = null,
-): { path: string; value: Json } | undefined {
-  if (!isObj(obj) || depth < 0) return undefined;
-  const lower = keys.map((k) => k.toLowerCase());
-  for (const [k, v] of Object.entries(obj)) if (lower.includes(k.toLowerCase())) return { path: path + k, value: v };
-  for (const [k, v] of Object.entries(obj)) {
-    if (skip && skip.test(k)) continue;
-    const found = pickPath(v, keys, depth - 1, `${path}${k}.`, skip);
-    if (found !== undefined) return found;
-  }
-  return undefined;
-}
-
-function pick(obj: Json, keys: string[], depth = 3): Json {
-  return pickPath(obj, keys, depth)?.value;
-}
-
 function fmtVal(v: Json): string {
-  if (typeof v === "number") return Math.abs(v) <= 1 && !Number.isInteger(v) ? v.toFixed(3) : fmtNum(v, 3);
+  if (typeof v === "number") return Math.abs(v) <= 1 && !Number.isInteger(v) ? fmtNum(v, 4) : fmtNum(v, 3);
   if (typeof v === "string") return v;
   if (typeof v === "boolean") return v ? "yes" : "no";
   if (v === null || v === undefined) return "—";
@@ -99,47 +76,64 @@ function Metric({ label, value, note }: { label: string; value: Json; note?: str
   );
 }
 
-function scalar(found: { path: string; value: Json } | undefined) {
-  if (!found) return undefined;
-  if (isObj(found.value)) {
-    const inner = pickPath(found.value, ["weighted_f1", "f1", "value"], 1, `${found.path}.`);
-    if (inner && !isObj(inner.value)) return inner;
-    return undefined;
-  }
-  return found;
-}
+const BENCHMARK_TRACKS = [
+  ["hc_p_lgb", "Handcrafted + Presto LightGBM"],
+  ["hc_lgb", "Handcrafted-only LightGBM"],
+  ["radar_rule", "Radar-rule baseline"],
+] as const;
 
 function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
-  const published = scalar(pickPath(report, ["published_weighted_f1", "paper_weighted_f1", "published"]));
-  // Our own rerun: never read from the paper's numbers or a baseline.
-  const notOurs = /paper|publish|baseline|rule/i;
-  const reproduced = scalar(pickPath(report, ["reproduced_weighted_f1", "weighted_f1"], 3, "", notOurs));
-  const precision = scalar(pickPath(report, ["dsr_precision", "precision_dsr"], 3, "", notOurs));
-  const recall = scalar(pickPath(report, ["dsr_recall", "recall_dsr"], 3, "", notOurs));
-  const limitations = pick(report, ["limitations", "known_limitations"]);
-  const method = pick(report, ["holdout", "holdout_method", "split", "evaluation_method"]);
+  const paper = isObj(report.paper) ? report.paper : {};
+  const comparison = isObj(report.comparison_on_test) ? report.comparison_on_test : {};
+  const split = isObj(report.split) ? report.split : {};
+  const rows = isObj(split.rows) ? split.rows : {};
   return (
     <section className="panel">
       <div className="panel-head">
         <h3>Ricemapper benchmark · published vs reproduced</h3>
-        <Tag tone="info">Public feature table · not Haryana accuracy</Tag>
+        <Tag tone="info">Public Punjab feature table</Tag>
       </div>
-      <div className="metrics">
-        <Metric label="Published weighted F1" value={published?.value} note={`Paper · ${published?.path}`} />
-        <Metric label="Reproduced weighted F1" value={reproduced?.value} note={`Our rerun · ${reproduced?.path}`} />
-        <Metric label="DSR precision" value={precision?.value} note={precision?.path} />
-        <Metric label="DSR recall" value={recall?.value} note={recall?.path} />
-      </div>
-      {method !== undefined ? (
-        <div className="report-block">
-          <h4>Evaluation method</h4>
-          <JsonTree value={method} />
-        </div>
+      {typeof paper.published_weighted_f1 === "number" ? (
+        <p className="small">
+          <strong>Published weighted F1 {fmtVal(paper.published_weighted_f1)}</strong>
+          {" · "}{fmtVal(paper.published_configuration)}
+        </p>
       ) : null}
-      {limitations !== undefined ? (
+      <div className="table-wrap">
+        <table aria-label="Ricemapper rerun metrics on the held-out test set">
+          <thead>
+            <tr>
+              <th>Rerun track</th>
+              <th className="num">Weighted F1</th>
+              <th className="num">DSR precision</th>
+              <th className="num">DSR recall</th>
+            </tr>
+          </thead>
+          <tbody>
+            {BENCHMARK_TRACKS.map(([key, label]) => {
+              const track = comparison[key];
+              return isObj(track) ? (
+                <tr key={key}>
+                  <td>{label}</td>
+                  <td className="num">{fmtVal(track.weighted_f1)}</td>
+                  <td className="num">{fmtVal(track.dsr_precision)}</td>
+                  <td className="num">{fmtVal(track.dsr_recall)}</td>
+                </tr>
+              ) : null;
+            })}
+          </tbody>
+        </table>
+      </div>
+      {typeof rows.test === "number" ? (
+        <p className="small muted">
+          All three reruns used the same stratified holdout of {rows.test} test rows, with seed {fmtVal(split.seed)}.
+          The release lacks geographic identifiers.
+        </p>
+      ) : null}
+      {report.limitations !== undefined ? (
         <div className="report-block limits">
           <h4>Limitations</h4>
-          <JsonTree value={limitations} />
+          <JsonTree value={report.limitations} />
         </div>
       ) : null}
       <details className="report-raw">

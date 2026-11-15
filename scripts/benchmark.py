@@ -45,12 +45,12 @@ MODELS = REPORTS / "models"
 UPSTREAM_REPO = "microsoft/rice-irrigation-mapping-s1s2"
 UPSTREAM_COMMIT = "62ba379a8b1c923eb36232ee814bfdee6ce861c3"
 PAPER = {
-    "title": "Remote Sensing Reveals Adoption of Sustainable Rice Farming Practices Across Punjab, India",
-    "authors": "Shah, A., Singh, R., Zaytar, A., Tadesse, G. A., Robinson, C., Tafti, N., Wood, S. A., Dodhia, R., Lavista Ferres, J. M.",
+    "title": "Machine Learning for Sustainable Rice Production: Region-Scale Monitoring of Water-Saving Practices in Punjab, India",
+    "authors": "Ando Shah et al.",
     "arxiv": "2507.08605v2",
     "url": "https://arxiv.org/abs/2507.08605v2",
-    "published_reference": "Roughly 0.80 weighted F1 for sowing (DSR) on Punjab data for specific feature combinations; "
-                           "a published reference, not reproduced here unless stated.",
+    "published_weighted_f1": 0.798,
+    "published_configuration": "Autoencoder + Fourier features (AE+FT), Punjab sowing classification.",
 }
 FILES = {
     "train_HC": ("data/features/06-01_09-05_f4d/train_HC.parquet",

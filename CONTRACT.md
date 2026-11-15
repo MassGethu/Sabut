@@ -73,6 +73,8 @@ An unscored real export can set `model.compatible: false` and include its compat
 
 Working examples are in [examples/api](examples/api). A visit recommendation includes `field_question`. Claim detail and action recording accept an optional nonnegative `budget` query parameter (default 1) for the displayed rank and recommendation snapshot. A saved officer event uses `overrides_recommendation` and `recommendation`. Farmer receipts include the submitted `reason` and `language` so they can appear in officer history. The `actions` and `review_requests` arrays are both oldest first. The benchmark response is `{status, benchmark, replay, message}`. Status is `pending` with neither report, `partial` with one, or `ready` with both. Each unavailable report is null. Recommendation evidence includes `quality_gate` with the configured gates and a nullable `failed_criterion`.
 
+The benchmark report exposes the paper's reference under `paper.published_weighted_f1` and `paper.published_configuration`. The app reads held-out rerun metrics from `comparison_on_test.hc_p_lgb`, `comparison_on_test.hc_lgb`, and `comparison_on_test.radar_rule`. Each has `weighted_f1`, `dsr_precision`, and `dsr_recall`. `tracks` carries the full metrics and confusion matrices.
+
 ## Recommendations and visit budget
 
 | Status code | UI label | Typical next action |
