@@ -5,6 +5,7 @@ import { fmtDate, fmtNum } from "../format";
 import { SourceTag, Tag } from "../components/Badges";
 import { AcquisitionTable, Provenance } from "../components/EvidenceParts";
 import { SignalChart } from "../components/SignalChart";
+import { statusLabel } from "../i18n/labels";
 
 type Json = unknown;
 const isObj = (v: Json): v is Record<string, Json> => !!v && typeof v === "object" && !Array.isArray(v);
@@ -330,7 +331,24 @@ function ReplayPanel({ report }: { report: Record<string, Json> }) {
   );
 }
 
-function RealExtraction({ records }: { records: { claim: ClaimDetail; ev: EvidenceRecord }[] }) {
+const EXTRACTION_PAGE = 12;
+
+type RealRecord = { claim: ClaimDetail; ev: EvidenceRecord };
+
+function matchesRecord({ claim }: RealRecord, q: string): boolean {
+  const hay = [claim.claim_id, claim.claimed_method, statusLabel(claim.status)].join(" ").toLowerCase();
+  return q.toLowerCase().split(/\s+/).filter(Boolean).every((t) => hay.includes(t));
+}
+
+/**
+ * One searchable list of every real extraction, with the full chart and
+ * provenance for a single selected claim, so 250+ plots stay readable.
+ */
+function RealExtraction({ records }: { records: RealRecord[] }) {
+  const [query, setQuery] = useState("");
+  const [limit, setLimit] = useState(EXTRACTION_PAGE);
+  const [picked, setPicked] = useState<string | null>(null);
+
   if (!records.length) {
     return (
       <section className="panel">
@@ -345,42 +363,103 @@ function RealExtraction({ records }: { records: { claim: ClaimDetail; ev: Eviden
       </section>
     );
   }
+
+  // Claims that need action come first, matching the officer queue.
+  const ordered = [...records].sort(
+    (a, b) =>
+      Number(a.claim.status === "ready_for_desk_review") - Number(b.claim.status === "ready_for_desk_review") ||
+      a.claim.claim_id.localeCompare(b.claim.claim_id, undefined, { numeric: true }),
+  );
+  const q = query.trim();
+  const hits = q ? ordered.filter((r) => matchesRecord(r, q)) : ordered;
+  const shown = hits.slice(0, limit);
+  const current =
+    records.find((r) => r.claim.claim_id === picked) ?? records.find((r) => r.claim.claim_id === "A") ?? ordered[0];
+  const { claim, ev } = current;
+
   return (
-    <>
-      {records.map(({ claim, ev }, idx) => (
-        <section className="panel" key={`${claim.claim_id}-${ev.processing_version}`}>
-          <div className="panel-head">
-            <h2>
-              Real Sentinel-1 extraction · claim {claim.claim_id}
-            </h2>
-            <SourceTag kind={ev.source_kind} detail={<span className="mono">{ev.processing_version}</span>} />
-            <a className="link-btn" href={`#/officer/${encodeURIComponent(claim.claim_id)}`}>
-              Open claim {claim.claim_id} in workspace
-            </a>
-          </div>
-          <div className="evidence-grid">
-            <SignalChart evidence={ev} harvestDate={claim.reported_harvest_date} />
-            <aside className="evidence-side">
-              <Provenance evidence={ev} />
-              <p className="small">
-                Model score:{" "}
-                {ev.model?.dsr_score != null ? (
-                  <strong>{fmtNum(ev.model.dsr_score, 2)}</strong>
-                ) : (
-                  <>
-                    <strong>unavailable</strong> — {ev.model?.compatibility_reason ?? "no compatible model output for this export."}
-                  </>
-                )}
-              </p>
-            </aside>
-          </div>
-          <AcquisitionTable evidence={ev} defaultOpen={idx === 0} harvestDate={claim.reported_harvest_date} />
-          {claim.reported_harvest_date ? (
-            <p className="muted small">Applicant-reported harvest date on this fictional claim: {fmtDate(claim.reported_harvest_date)}.</p>
-          ) : null}
-        </section>
-      ))}
-    </>
+    <section className="panel">
+      <div className="panel-head">
+        <h2>Real Sentinel-1 extraction</h2>
+        <SourceTag kind={ev.source_kind} detail={<span className="mono">{ev.processing_version}</span>} />
+        <span className="muted small">{records.length} claims</span>
+      </div>
+
+      <div className="extract-picker">
+        <div className="queue-search">
+          <input
+            type="search"
+            value={query}
+            placeholder="Search claim ID, method or status"
+            aria-label="Search extractions"
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setLimit(EXTRACTION_PAGE);
+            }}
+          />
+        </div>
+        {hits.length ? (
+          <ul className="extract-list" aria-label="Claims with real extraction">
+            {shown.map(({ claim: c, ev: e }) => (
+              <li key={`${c.claim_id}-${e.processing_version}`}>
+                <button
+                  className="extract-chip"
+                  aria-pressed={c.claim_id === claim.claim_id}
+                  onClick={() => setPicked(c.claim_id)}
+                  title={statusLabel(c.status)}
+                >
+                  <i className={`dot dot-${c.status}`} aria-hidden />
+                  <strong>{c.claim_id}</strong>
+                  <span className="muted">
+                    {c.claimed_method} · {e.usable_count}/{e.observations?.length ?? 0}
+                  </span>
+                </button>
+              </li>
+            ))}
+            {hits.length > shown.length ? (
+              <li>
+                <button className="extract-chip extract-more" onClick={() => setLimit((n) => n + EXTRACTION_PAGE * 3)}>
+                  +{hits.length - shown.length} more
+                </button>
+              </li>
+            ) : null}
+          </ul>
+        ) : (
+          <p className="muted small">No claims match “{q}”.</p>
+        )}
+        <p className="muted small extract-legend">Usable / total acquisitions shown after the method.</p>
+      </div>
+
+      <div className="extract-detail">
+        <div className="panel-head">
+          <h3>Claim {claim.claim_id}</h3>
+          <span className="muted small">{statusLabel(claim.status)}</span>
+          <a className="link-btn" href={`#/officer/${encodeURIComponent(claim.claim_id)}`}>
+            Open claim {claim.claim_id} in workspace
+          </a>
+        </div>
+        <div className="evidence-grid">
+          <SignalChart evidence={ev} harvestDate={claim.reported_harvest_date} />
+          <aside className="evidence-side">
+            <Provenance evidence={ev} />
+            <p className="small">
+              Model score:{" "}
+              {ev.model?.dsr_score != null ? (
+                <strong>{fmtNum(ev.model.dsr_score, 2)}</strong>
+              ) : (
+                <>
+                  <strong>unavailable</strong> — {ev.model?.compatibility_reason ?? "no compatible model output for this export."}
+                </>
+              )}
+            </p>
+          </aside>
+        </div>
+        <AcquisitionTable evidence={ev} harvestDate={claim.reported_harvest_date} />
+        {claim.reported_harvest_date ? (
+          <p className="muted small">Applicant-reported harvest date on this fictional claim: {fmtDate(claim.reported_harvest_date)}.</p>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
