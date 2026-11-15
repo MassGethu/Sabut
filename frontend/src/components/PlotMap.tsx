@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { actionLabel, statusLabel } from "../i18n/labels";
 import { fmtNum } from "../format";
+import { centroid, depotFor, planRoute, type LatLng, type VisitRoute } from "../route";
 
 export interface MapPlot {
   id: string;
@@ -51,6 +52,7 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
   const map = useRef<L.Map | null>(null);
   const plotLayer = useRef<L.FeatureGroup | null>(null);
   const gridLayer = useRef<L.LayerGroup | null>(null);
+  const routeLayer = useRef<L.LayerGroup | null>(null);
   const fittedKey = useRef("");
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
@@ -66,6 +68,9 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
     L.control.scale({ imperial: false, position: "bottomleft", maxWidth: 140 }).addTo(m);
     gridLayer.current = L.layerGroup().addTo(m);
     plotLayer.current = L.featureGroup().addTo(m);
+    // Route sits above plot fills but below the claim labels (tooltip pane is 650).
+    m.createPane("route").style.zIndex = "450";
+    routeLayer.current = L.layerGroup().addTo(m);
 
     const drawGrid = () => {
       const g = gridLayer.current;
@@ -154,6 +159,33 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
     }
   }, [plots, selectedId, compareIds, mapVersion]);
 
+  // Today's visit route: a loop from the (fictional) block office through every budgeted plot.
+  const route: VisitRoute | null = useMemo(() => {
+    const points = plots.map((p) => centroid(p.geometry)).filter((c): c is LatLng => c !== null);
+    const stops = plots
+      .filter((p) => p.inBudget)
+      .map((p) => ({ id: p.id, at: centroid(p.geometry) }))
+      .filter((s): s is { id: string; at: LatLng } => s.at !== null);
+    return stops.length && points.length ? planRoute(depotFor(points), stops) : null;
+  }, [plots]);
+
+  useEffect(() => {
+    const layer = routeLayer.current;
+    if (!layer) return;
+    layer.clearLayers();
+    if (!route) return;
+    const path: LatLng[] = [route.depot, ...route.stops.map((s) => s.at), route.depot];
+    L.polyline(path, { pane: "route", color: "#ffffff", weight: 6, opacity: 0.85, interactive: false }).addTo(layer);
+    L.polyline(path, { pane: "route", color: "#14201a", weight: 2.5, dashArray: "7 6", interactive: false }).addTo(layer);
+    L.marker(route.depot, {
+      pane: "route",
+      keyboard: false,
+      icon: L.divIcon({ className: "route-depot", html: "<span>Office</span>", iconSize: [0, 0] }),
+    })
+      .bindTooltip("Block office (fictional) · route start and end", { direction: "top", offset: [0, -14] })
+      .addTo(layer);
+  }, [route, mapVersion]);
+
   function fitAll() {
     const m = map.current;
     const g = plotLayer.current;
@@ -220,6 +252,12 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
             <i style={{ background: c }} className={s === "insufficient_evidence" ? "dashed" : ""} /> {statusLabel(s)}
           </span>
         ))}
+        {route ? (
+          <span className="route-summary" title="Straight-line distance; road distance will be longer.">
+            <i className="route-key" /> Visit route: {route.stops.length} stop{route.stops.length === 1 ? "" : "s"} ·{" "}
+            {fmtNum(route.km, 1)} km straight-line · Office → {route.stops.map((s) => s.id).join(" → ")} → Office
+          </span>
+        ) : null}
         <span className="muted map-legend-note">Offline · boundaries only<span className="map-shift-hint"> · Shift-click to compare</span></span>
       </div>
     </div>
