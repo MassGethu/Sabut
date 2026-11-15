@@ -12,6 +12,14 @@ type State =
   | { state: "done"; source: string; res: ImportResponse }
   | { state: "error"; source: string; message: string };
 
+const MAX_LISTED_IDS = 15;
+
+/** First 15 accepted IDs, then a count of the rest. */
+function summarizeIds(ids: string[]): string {
+  if (ids.length <= MAX_LISTED_IDS) return ids.join(", ");
+  return `${ids.slice(0, MAX_LISTED_IDS).join(", ")}, … +${ids.length - MAX_LISTED_IDS} more`;
+}
+
 export function ImportBar({ onImported }: Props) {
   const [st, setSt] = useState<State>({ state: "idle" });
   const fileInput = useRef<HTMLInputElement>(null);
@@ -65,7 +73,7 @@ export function ImportBar({ onImported }: Props) {
         <div className={`import-result ${st.res.errors.length ? "partial" : "ok"}`} role="status">
           <span>
             <strong>{st.source}:</strong> {st.res.imported_ids.length} claim{st.res.imported_ids.length === 1 ? "" : "s"} accepted
-            {st.res.imported_ids.length ? ` (${st.res.imported_ids.join(", ")})` : ""}
+            {st.res.imported_ids.length ? ` (${summarizeIds(st.res.imported_ids)})` : ""}
             {st.res.errors.length ? `, ${st.res.errors.length} feature${st.res.errors.length === 1 ? "" : "s"} rejected.` : "."}
           </span>
           {st.res.errors.length ? (
