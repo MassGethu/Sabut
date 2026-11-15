@@ -12,6 +12,8 @@ interface FarmerStrings {
   methods: Record<string, string>;
   acres: (n: number) => string;
   statusHeading: string;
+  officerOverride: string;
+  officerNextHeading: string;
   status: Record<Status, { title: string; body: string }>;
   nextStepHeading: string;
   nextStep: Record<ActionValue, string>;
@@ -47,7 +49,9 @@ export const FARMER_TEXT: Record<Language, FarmerStrings> = {
     claimedMethod: "बताया गया बुवाई तरीका",
     methods: { DSR: "धान की सीधी बुवाई (DSR)", PTR: "पौध रोपाई (PTR)" },
     acres: (n) => `${n} एकड़`,
-    statusHeading: "स्थिति",
+    statusHeading: "उपग्रह जाँच का परिणाम",
+    officerOverride: "अधिकारी ने सिस्टम की सलाह से अलग अगला कदम चुना है। नीचे लिखा अधिकारी का फ़ैसला लागू है।",
+    officerNextHeading: "अधिकारी का फ़ैसला · अगला कदम",
     status: {
       ready_for_desk_review: {
         title: "कार्यालय में जाँच के लिए तैयार",
@@ -103,7 +107,9 @@ export const FARMER_TEXT: Record<Language, FarmerStrings> = {
     claimedMethod: "ਦੱਸਿਆ ਬਿਜਾਈ ਦਾ ਤਰੀਕਾ",
     methods: { DSR: "ਝੋਨੇ ਦੀ ਸਿੱਧੀ ਬਿਜਾਈ (DSR)", PTR: "ਪਨੀਰੀ ਦੀ ਲੁਆਈ (PTR)" },
     acres: (n) => `${n} ਏਕੜ`,
-    statusHeading: "ਸਥਿਤੀ",
+    statusHeading: "ਸੈਟੇਲਾਈਟ ਜਾਂਚ ਦਾ ਨਤੀਜਾ",
+    officerOverride: "ਅਧਿਕਾਰੀ ਨੇ ਸਿਸਟਮ ਦੀ ਸਲਾਹ ਤੋਂ ਵੱਖਰਾ ਅਗਲਾ ਕਦਮ ਚੁਣਿਆ ਹੈ। ਹੇਠਾਂ ਲਿਖਿਆ ਅਧਿਕਾਰੀ ਦਾ ਫ਼ੈਸਲਾ ਲਾਗੂ ਹੈ।",
+    officerNextHeading: "ਅਧਿਕਾਰੀ ਦਾ ਫ਼ੈਸਲਾ · ਅਗਲਾ ਕਦਮ",
     status: {
       ready_for_desk_review: {
         title: "ਦਫ਼ਤਰੀ ਜਾਂਚ ਲਈ ਤਿਆਰ",

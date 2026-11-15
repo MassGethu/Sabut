@@ -46,6 +46,7 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
   // The card reflects Meena's latest recorded action when there is one, else the server recommendation.
   const recorded = detail.actions.length ? detail.actions[detail.actions.length - 1] : null;
   const step = recorded ? recorded.action : detail.next_action;
+  const overridden = recorded !== null && recorded.action !== detail.next_action;
   const status = t.status[detail.status];
 
   async function send(e: React.FormEvent) {
@@ -102,9 +103,9 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
         <div className="officer-gloss">
           <span className="eyebrow">Officer view of this card (English)</span>
           <p>
-            Status: <strong>{statusLabel(detail.status)}</strong>
+            Satellite review status: <strong>{statusLabel(detail.status)}</strong>
             <br />
-            Shown next step: <strong>{actionLabel(step)}</strong> {recorded ? "(Meena's recorded action)" : "(recommendation; nothing recorded yet)"}
+            Shown next step: <strong>{actionLabel(step)}</strong> {recorded ? (overridden ? "(Meena's override of the recommendation)" : "(Meena's recorded action)") : "(recommendation; nothing recorded yet)"}
           </p>
         </div>
       </aside>
@@ -139,10 +140,11 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
           <span className="eyebrow">{t.statusHeading}</span>
           <h3>{status.title}</h3>
           <p>{status.body}</p>
+          {overridden ? <p className="fc-override">{t.officerOverride}</p> : null}
         </section>
 
         <section className="fc-next">
-          <span className="eyebrow">{t.nextStepHeading}</span>
+          <span className="eyebrow">{recorded ? t.officerNextHeading : t.nextStepHeading}</span>
           <p className="fc-next-text">{t.nextStep[step]}</p>
           <p className="fc-recorded small">
             {recorded ? (

@@ -7,6 +7,7 @@ import { SignalChart, bandDomain } from "./SignalChart";
 /** Side-by-side comparison of two (typically neighbouring) claims on one shared scale. */
 export function Compare({ claims, onClose, onFocus }: { claims: ClaimDetail[]; onClose: () => void; onFocus: (id: string) => void }) {
   const domain = bandDomain(claims.map((c) => c.evidence));
+  const realDomain = bandDomain(claims.map((c) => c.real_evidence));
   const sameMethod = claims.length === 2 && claims[0].claimed_method === claims[1].claimed_method;
   return (
     <section className="panel compare" aria-label="Claim comparison">
@@ -50,6 +51,20 @@ export function Compare({ claims, onClose, onFocus }: { claims: ClaimDetail[]; o
               ) : (
                 <div className="chart-empty">No cached radar evidence for this boundary.</div>
               )}
+              {c.real_evidence ? (
+                <div className="compare-real">
+                  <SignalChart evidence={c.real_evidence} yDomain={realDomain} compact />
+                  <div className="compare-facts">
+                    <SourceTag kind={c.real_evidence.source_kind} detail={<span className="mono">{c.real_evidence.processing_version}</span>} />
+                    <span>
+                      <strong>{c.real_evidence.usable_count}</strong> usable dates
+                    </span>
+                    <span>
+                      Model score <strong>{c.real_evidence.model?.dsr_score != null ? fmtNum(c.real_evidence.model.dsr_score, 2) : "unavailable"}</strong>
+                    </span>
+                  </div>
+                </div>
+              ) : null}
               <Recommendation item={c} compact />
             </div>
           );

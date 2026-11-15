@@ -10,15 +10,26 @@ type Json = unknown;
 const isObj = (v: Json): v is Record<string, Json> => !!v && typeof v === "object" && !Array.isArray(v);
 
 /** Find the first value whose key matches one of the candidates (case-insensitive), searching nested objects. */
-function pick(obj: Json, keys: string[], depth = 3): Json {
+function pickPath(
+  obj: Json,
+  keys: string[],
+  depth = 3,
+  path = "",
+  skip: RegExp | null = null,
+): { path: string; value: Json } | undefined {
   if (!isObj(obj) || depth < 0) return undefined;
   const lower = keys.map((k) => k.toLowerCase());
-  for (const [k, v] of Object.entries(obj)) if (lower.includes(k.toLowerCase())) return v;
-  for (const v of Object.values(obj)) {
-    const found = pick(v, keys, depth - 1);
+  for (const [k, v] of Object.entries(obj)) if (lower.includes(k.toLowerCase())) return { path: path + k, value: v };
+  for (const [k, v] of Object.entries(obj)) {
+    if (skip && skip.test(k)) continue;
+    const found = pickPath(v, keys, depth - 1, `${path}${k}.`, skip);
     if (found !== undefined) return found;
   }
   return undefined;
+}
+
+function pick(obj: Json, keys: string[], depth = 3): Json {
+  return pickPath(obj, keys, depth)?.value;
 }
 
 function fmtVal(v: Json): string {
@@ -88,11 +99,23 @@ function Metric({ label, value, note }: { label: string; value: Json; note?: str
   );
 }
 
+function scalar(found: { path: string; value: Json } | undefined) {
+  if (!found) return undefined;
+  if (isObj(found.value)) {
+    const inner = pickPath(found.value, ["weighted_f1", "f1", "value"], 1, `${found.path}.`);
+    if (inner && !isObj(inner.value)) return inner;
+    return undefined;
+  }
+  return found;
+}
+
 function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
-  const published = pick(report, ["published_weighted_f1", "paper_weighted_f1", "published"]);
-  const reproduced = pick(report, ["weighted_f1", "reproduced_weighted_f1"]);
-  const precision = pick(report, ["dsr_precision", "precision_dsr"]);
-  const recall = pick(report, ["dsr_recall", "recall_dsr"]);
+  const published = scalar(pickPath(report, ["published_weighted_f1", "paper_weighted_f1", "published"]));
+  // Our own rerun: never read from the paper's numbers or a baseline.
+  const notOurs = /paper|publish|baseline|rule/i;
+  const reproduced = scalar(pickPath(report, ["reproduced_weighted_f1", "weighted_f1"], 3, "", notOurs));
+  const precision = scalar(pickPath(report, ["dsr_precision", "precision_dsr"], 3, "", notOurs));
+  const recall = scalar(pickPath(report, ["dsr_recall", "recall_dsr"], 3, "", notOurs));
   const limitations = pick(report, ["limitations", "known_limitations"]);
   const method = pick(report, ["holdout", "holdout_method", "split", "evaluation_method"]);
   return (
@@ -102,10 +125,10 @@ function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
         <Tag tone="info">Public feature table · not Haryana accuracy</Tag>
       </div>
       <div className="metrics">
-        <Metric label="Published weighted F1" value={isObj(published) ? pick(published, ["weighted_f1", "f1"]) ?? published : published} note="Paper, specific configuration" />
-        <Metric label="Reproduced weighted F1" value={reproduced} note="Our rerun" />
-        <Metric label="DSR precision" value={precision} />
-        <Metric label="DSR recall" value={recall} />
+        <Metric label="Published weighted F1" value={published?.value} note={`Paper · ${published?.path}`} />
+        <Metric label="Reproduced weighted F1" value={reproduced?.value} note={`Our rerun · ${reproduced?.path}`} />
+        <Metric label="DSR precision" value={precision?.value} note={precision?.path} />
+        <Metric label="DSR recall" value={recall?.value} note={recall?.path} />
       </div>
       {method !== undefined ? (
         <div className="report-block">
@@ -127,6 +150,69 @@ function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
   );
 }
 
+const METHOD_LABEL: Record<string, string> = {
+  sabut: "Sabūt queue policy",
+  seeded_random: "Seeded random",
+  score_only: "Score-only ordering",
+};
+
+function ReplayTable({ report }: { report: Record<string, Json> }) {
+  const methods = report.methods;
+  if (!isObj(methods)) return null;
+  const num = (v: Json) => (typeof v === "number" ? v : null);
+  return (
+    <>
+      <div className="metrics">
+        <Metric label="Visit budget" value={report.budget} />
+        <Metric label="Candidate pool" value={report.candidate_pool_count} note="visit-eligible claims" />
+        <Metric label="Random seed" value={report.seed} />
+        <Metric label="Outcome source" value={report.outcome_source} />
+      </div>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Selected claims</th>
+              <th className="num">Resolved</th>
+              <th className="num">Corrected</th>
+              <th className="num">Resolved or corrected</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(methods).map(([k, m]) => {
+              if (!isObj(m)) return null;
+              const hit = num(m.resolved_or_corrected);
+              const den = num(m.denominator);
+              return (
+                <tr key={k} className={k === "sabut" ? "row-sabut" : ""}>
+                  <td>
+                    <strong>{METHOD_LABEL[k] ?? k.replaceAll("_", " ")}</strong>
+                  </td>
+                  <td className="mono">{Array.isArray(m.selected_claim_ids) ? m.selected_claim_ids.join(", ") : "—"}</td>
+                  <td className="num">{fmtVal(m.resolved)}</td>
+                  <td className="num">{fmtVal(m.corrected)}</td>
+                  <td className="num">
+                    <strong>
+                      {hit ?? "—"} / {den ?? "—"}
+                    </strong>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {typeof report.score_only_order === "string" || typeof report.random_order === "string" ? (
+        <p className="muted small">
+          {typeof report.random_order === "string" ? `Random: ${report.random_order} ` : ""}
+          {typeof report.score_only_order === "string" ? `Score-only: ${report.score_only_order}` : ""}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
 function ReplayPanel({ report }: { report: Record<string, Json> }) {
   return (
     <section className="panel">
@@ -138,7 +224,11 @@ function ReplayPanel({ report }: { report: Record<string, Json> }) {
         The actual queue policy versus seeded random and score-only orderings, on the same candidate pool and visit budget.
         Counts are visits reaching cases the simulated inspection resolves or corrects.
       </p>
-      <JsonTree value={report} />
+      <ReplayTable report={report} />
+      <details className="report-raw">
+        <summary>Full replay report (reports/replay.json)</summary>
+        <JsonTree value={report} />
+      </details>
     </section>
   );
 }
@@ -160,7 +250,7 @@ function RealExtraction({ records, onOpen }: { records: { claim: ClaimDetail; ev
   }
   return (
     <>
-      {records.map(({ claim, ev }) => (
+      {records.map(({ claim, ev }, idx) => (
         <section className="panel" key={`${claim.claim_id}-${ev.processing_version}`}>
           <div className="panel-head">
             <h3>
@@ -187,7 +277,7 @@ function RealExtraction({ records, onOpen }: { records: { claim: ClaimDetail; ev
               </p>
             </aside>
           </div>
-          <AcquisitionTable evidence={ev} defaultOpen harvestDate={claim.reported_harvest_date} />
+          <AcquisitionTable evidence={ev} defaultOpen={idx === 0} harvestDate={claim.reported_harvest_date} />
           {claim.reported_harvest_date ? (
             <p className="muted small">Applicant-reported harvest date on this fictional claim: {fmtDate(claim.reported_harvest_date)}.</p>
           ) : null}
@@ -253,6 +343,7 @@ export function ResultsView({ claims, onOpenClaim }: { claims: ClaimDetail[]; on
     if (c.evidence?.source_kind === "sentinel1_real") real.push({ claim: c, ev: c.evidence });
     if (c.real_evidence) real.push({ claim: c, ev: c.real_evidence });
   }
+  real.sort((a, b) => a.claim.claim_id.localeCompare(b.claim.claim_id));
 
   return (
     <div className="results">
