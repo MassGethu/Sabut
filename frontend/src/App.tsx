@@ -8,7 +8,7 @@ import { ImportBar } from "./components/ImportBar";
 import { PlotMap, type MapPlot } from "./components/PlotMap";
 import { BudgetControl, Queue } from "./components/Queue";
 import { FarmerPreview } from "./views/FarmerPreview";
-import { ResponsibleAI, ResultsView } from "./views/ResultsView";
+import { ResultsView } from "./views/ResultsView";
 
 type View = "officer" | "farmer" | "results";
 
@@ -156,6 +156,8 @@ export default function App() {
           status: i.status,
           inBudget: i.in_visit_budget,
           rank: i.rank,
+          acres: i.claimed_acres,
+          nextAction: i.next_action,
         })),
     [queue, details],
   );
@@ -222,7 +224,7 @@ export default function App() {
             <BudgetControl budget={budget} items={queue} loading={loading} onChange={changeBudget} />
             <div className="queue-head">
               <h3>Queue</h3>
-              <span className="muted small">server order · visit ranks first</span>
+              <span className="muted small">{queue.length} claim{queue.length === 1 ? "" : "s"} · server order</span>
             </div>
             <Queue
               items={queue}
@@ -236,21 +238,19 @@ export default function App() {
           </aside>
 
           <section className="workspace">
-            <div className="map-row">
-              <PlotMap plots={plots} selectedId={selectedId} compareIds={compareIds} onSelect={select} />
-              {compareClaims.length < 2 ? (
-                <div className="compare-hint">
-                  <p>
-                    <strong>Compare neighbouring plots.</strong> Tick “Compare” on two claims or Shift-click them on the map.
-                  </p>
-                  {hasAB ? (
-                    <button className="btn" onClick={() => setCompareIds(["A", "B"])}>
-                      Compare A · B
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
+            <PlotMap
+              plots={plots}
+              selectedId={selectedId}
+              compareIds={compareIds}
+              onSelect={select}
+              tools={
+                hasAB && compareClaims.length < 2 ? (
+                  <button className="map-btn map-btn-primary" onClick={() => setCompareIds(["A", "B"])}>
+                    Compare A · B
+                  </button>
+                ) : null
+              }
+            />
 
             {compareClaims.length >= 2 ? (
               <Compare claims={compareClaims} onClose={() => setCompareIds([])} onFocus={(id) => select(id)} />
@@ -268,7 +268,7 @@ export default function App() {
                   />
                   <div className="side-links">
                     <button
-                      className="btn btn-ghost"
+                      className="btn btn-ghost btn-block"
                       onClick={() => {
                         setFarmerClaim(selected.claim_id);
                         go("farmer", selected.claim_id);
@@ -277,7 +277,6 @@ export default function App() {
                       Preview farmer card for {selected.claim_id} →
                     </button>
                   </div>
-                  <ResponsibleAI compact />
                 </div>
               </div>
             ) : queue.length ? (

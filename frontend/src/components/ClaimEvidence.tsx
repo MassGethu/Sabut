@@ -1,189 +1,215 @@
-import type { ClaimDetail, EvidenceRecord, QueueItem } from "../api/types";
+import { useEffect, useState } from "react";
+import type { ClaimDetail, EvidenceRecord } from "../api/types";
 import { fmtDate, fmtNum, utcMs } from "../format";
 import { actionLabel, humanize } from "../i18n/labels";
 import { SourceTag, StatusPill, Tag } from "./Badges";
 import { AcquisitionTable, ModelScore, Provenance, QualityGateView } from "./EvidenceParts";
 import { SignalChart } from "./SignalChart";
 
-/** Server recommendation fields, displayed as returned. */
-export function Recommendation({ item, compact }: { item: QueueItem; compact?: boolean }) {
-  return (
-    <div className={`rec-block ${compact ? "rec-compact" : ""}`}>
-      <div className="rec-top">
-        <StatusPill status={item.status} />
-        {item.rank !== null ? (
-          item.in_visit_budget ? (
-            <Tag tone="info">Visit rank {item.rank} · in budget</Tag>
-          ) : (
-            <Tag>Visit rank {item.rank} · outside budget</Tag>
-          )
-        ) : (
-          <Tag>Unranked</Tag>
-        )}
-      </div>
-      <p className="rec-reason">{item.reason}</p>
-      <dl className="rec-grid">
-        <div>
-          <dt>Next action</dt>
-          <dd>
-            <strong>{actionLabel(item.next_action)}</strong>
-          </dd>
-        </div>
-        <div>
-          <dt>Claimed acreage</dt>
-          <dd>{item.claimed_acres !== null ? `${fmtNum(item.claimed_acres)} ac` : <em className="muted">Not stated by applicant</em>}</dd>
-        </div>
-        <div>
-          <dt>Priority index</dt>
-          <dd>
-            {item.visit_priority !== null ? (
-              <span className="mono">{fmtNum(item.visit_priority, 0)}</span>
-            ) : item.rank !== null ? (
-              <em className="muted">No index (ranked without acreage)</em>
-            ) : (
-              <em className="muted">Not visit-eligible</em>
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt>Reason code</dt>
-          <dd className="mono small">{item.reason_code}</dd>
-        </div>
-      </dl>
-      {item.field_question ? (
-        <div className="field-q">
-          <span className="eyebrow">Question for the field team</span>
-          <p>{item.field_question}</p>
-        </div>
-      ) : null}
-      {item.rank_reason ? (
-        <p className="rank-reason">
-          <span className="eyebrow">Rank reason</span> {item.rank_reason}
-        </p>
-      ) : !compact && item.rank === null ? (
-        <p className="rank-reason muted">
-          <span className="eyebrow">Rank</span> Not ranked for a visit: the next action is{" "}
-          {actionLabel(item.next_action).toLowerCase()}, which a field visit would not resolve.
-        </p>
-      ) : null}
-    </div>
-  );
+function fictional(name: string) {
+  return /fictional/i.test(name) ? name : `${name} (fictional)`;
 }
 
-function EvidenceBlock({
-  evidence,
-  heading,
-  harvestDate,
-  model,
-}: {
-  evidence: EvidenceRecord;
-  heading: string;
-  harvestDate?: string | null;
-  model?: ClaimDetail["model"];
-}) {
+/** Server recommendation for the selected claim, shown as returned. */
+function Summary({ detail }: { detail: ClaimDetail }) {
   return (
-    <section className="panel evidence-block">
-      <div className="panel-head">
-        <h3>{heading}</h3>
-        <SourceTag kind={evidence.source_kind} detail={<span className="mono">{evidence.processing_version}</span>} />
+    <section className="panel claim-summary">
+      <header className="claim-head">
+        <div>
+          <h2>Claim {detail.claim_id}</h2>
+          <p className="claim-meta">
+            {detail.farmer_name ? `${fictional(detail.farmer_name)} · ` : ""}
+            {detail.season} · claims <strong>{detail.claimed_method}</strong> ·{" "}
+            {detail.claimed_acres !== null ? `${fmtNum(detail.claimed_acres)} ac claimed` : "acreage not stated"}
+          </p>
+        </div>
+        <div className="claim-badges">
+          <StatusPill status={detail.status} />
+          {detail.rank !== null ? (
+            <Tag tone={detail.in_visit_budget ? "info" : "neutral"}>
+              Visit rank {detail.rank} · {detail.in_visit_budget ? "in budget" : "outside budget"}
+            </Tag>
+          ) : null}
+        </div>
+      </header>
+
+      <p className="claim-reason">{detail.reason}</p>
+
+      <div className="next-box">
+        <span className="eyebrow">Next action</span>
+        <strong className="next-action">{actionLabel(detail.next_action)}</strong>
+        {detail.field_question ? (
+          <p className="field-q">
+            <span className="eyebrow">Ask on the visit</span>
+            {detail.field_question}
+          </p>
+        ) : null}
       </div>
-      {evidence.source_kind === "simulated" ? (
-        <p className="sim-banner">
-          Simulated workflow evidence. Scene IDs, values and any score are fictional and exist to demonstrate the review
-          workflow.
-        </p>
-      ) : null}
-      <div className="evidence-grid">
-        <SignalChart evidence={evidence} harvestDate={harvestDate} />
-        <aside className="evidence-side">
-          <Provenance evidence={evidence} />
-        </aside>
-      </div>
-      <div className="evidence-grid-2">
-        <QualityGateView evidence={evidence} />
-        <ModelScore model={model !== undefined ? model : evidence.model} evidenceKind={evidence.source_kind} />
-      </div>
-      {evidence.gaps?.length ? (
-        <ul className="gap-list">
-          {evidence.gaps.map((g, i) => (
-            <li key={i}>
-              <strong>
-                Gap {fmtDate(g.start)} → {fmtDate(g.end)}
-              </strong>{" "}
-              <span className="muted">{g.reason}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <AcquisitionTable evidence={evidence} harvestDate={harvestDate} />
+
+      <p className="rank-line">
+        {detail.rank !== null ? (
+          <>
+            <strong>Why rank {detail.rank}:</strong> {detail.rank_reason}
+            {detail.visit_priority !== null ? (
+              <>
+                {" "}
+                Priority index <span className="mono">{fmtNum(detail.visit_priority, 0)}</span> (a ranking aid, not money).
+              </>
+            ) : (
+              " No priority index: ranked by score ambiguity only."
+            )}
+          </>
+        ) : (
+          <span className="muted">
+            Not ranked for a visit — {actionLabel(detail.next_action).toLowerCase()} comes first.
+          </span>
+        )}
+      </p>
     </section>
   );
-}
-
-function retroNote(evidence: EvidenceRecord | null): string | null {
-  const r = evidence?.retrospective;
-  if (r && typeof r === "object" && typeof (r as { note?: unknown }).note === "string") return (r as { note: string }).note;
-  return null;
 }
 
 function Retrospective({ detail, evidence }: { detail: ClaimDetail; evidence: EvidenceRecord | null }) {
   const harvest = detail.reported_harvest_date!;
   const hMs = utcMs(harvest);
   const before = (evidence?.observations ?? []).filter((o) => Date.parse(o.acquired_at) < hMs);
-  const usableBefore = before.filter((o) => o.usable);
+  const usable = before.filter((o) => o.usable).length;
+  const note =
+    evidence?.retrospective && typeof (evidence.retrospective as { note?: unknown }).note === "string"
+      ? (evidence.retrospective as { note: string }).note
+      : null;
+  const fromSimulation = detail.evidence?.source_kind === "simulated" && evidence?.source_kind === "sentinel1_real";
+  const unscored = evidence?.source_kind === "sentinel1_real" && evidence.model?.dsr_score == null;
   return (
     <section className="panel retro">
-      <div className="panel-head">
+      <div className="retro-top">
         <h3>Review after harvest</h3>
-        <Tag tone="warn">Applicant-reported harvest date · fictional claim</Tag>
+        <Tag tone="warn">Harvest date reported by the applicant · fictional claim</Tag>
       </div>
-      <div className="retro-grid">
+      <div className="retro-facts">
         <div>
           <span className="eyebrow">Reported harvest</span>
-          <strong className="big">{fmtDate(harvest)}</strong>
-          <small className="muted">As reported by the applicant on this fictional claim.</small>
+          <strong>{fmtDate(harvest)}</strong>
         </div>
         <div>
-          <span className="eyebrow">Archived acquisitions before harvest</span>
-          <strong className="big">
-            {usableBefore.length} usable / {before.length}
+          <span className="eyebrow">Archived radar before it</span>
+          <strong>
+            {usable} usable of {before.length}
           </strong>
-          <small className="muted">
-            {evidence ? (
-              <>
-                <SourceTag kind={evidence.source_kind} /> {before.length ? `${fmtDate(before[0].acquired_at)} – ${fmtDate(before[before.length - 1].acquired_at)}` : ""}
-              </>
-            ) : (
-              "No cached archive for this boundary."
-            )}
-          </small>
+          {before.length ? (
+            <span className="muted small">
+              {fmtDate(before[0].acquired_at)} – {fmtDate(before[before.length - 1].acquired_at)}
+            </span>
+          ) : null}
         </div>
         <div>
           <span className="eyebrow">Next step from the API</span>
           <strong>{actionLabel(detail.next_action)}</strong>
-          <small className="muted">{detail.reason}</small>
         </div>
       </div>
-      {retroNote(evidence) ? <p className="retro-note">{retroNote(evidence)}</p> : null}
-      <p className="retro-explain">
-        The field can no longer be inspected for its sowing method after harvest. The archive still holds radar
-        acquisitions taken during the sowing window, before the reported harvest. They show whether usable evidence
-        exists and what it looked like; archive availability alone cannot establish the sowing method.
+      <p className="retro-text">
+        The field can't be inspected for its sowing method after harvest, but the archive keeps radar taken during the
+        sowing window. It shows that usable evidence exists; on its own it cannot prove the sowing method.
+        {fromSimulation ? " This claim's recommendation comes from the labeled simulation." : ""}
+        {unscored ? " The real archive is unscored, so it supports the review with dated scenes, not a score." : ""}
       </p>
-      <p className="retro-explain">
-        <strong>Next step:</strong> {actionLabel(detail.next_action)}.{" "}
-        {detail.evidence?.source_kind === "simulated" && evidence?.source_kind === "sentinel1_real"
-          ? "This recommendation comes from the labeled workflow simulation. "
-          : ""}
-        {evidence?.source_kind === "sentinel1_real" && evidence.model?.dsr_score == null
-          ? "The real pre-harvest archive is unscored, so it supports the review with dated scene evidence but not a sowing-method score."
-          : ""}
-        {detail.next_action === "request_records"
-          ? " Dated sowing records are needed to complete the review."
-          : detail.next_action === "request_boundary_correction"
-            ? " A corrected boundary is needed before the archive can be used."
-            : ""}
-      </p>
+      {note ? <p className="retro-note">{note}</p> : null}
+    </section>
+  );
+}
+
+function gateSummary(ev: EvidenceRecord): { ok: boolean; text: string } {
+  const failed = ev.quality_gate?.failed_criterion;
+  if (!ev.quality_gate) return { ok: true, text: "Gate not reported" };
+  return failed ? { ok: false, text: `Gate failed: ${humanize(failed).toLowerCase()}` } : { ok: true, text: "Evidence gate passed" };
+}
+
+function EvidencePanel({ detail }: { detail: ClaimDetail }) {
+  const options: { key: string; label: string; ev: EvidenceRecord }[] = [];
+  if (detail.evidence) {
+    options.push({
+      key: "decision",
+      label: detail.evidence.source_kind === "simulated" ? "Decision · simulated" : "Real Sentinel-1",
+      ev: detail.evidence,
+    });
+  }
+  if (detail.real_evidence) options.push({ key: "real", label: "Real Sentinel-1", ev: detail.real_evidence });
+  const [which, setWhich] = useState(options[0]?.key ?? "decision");
+  useEffect(() => setWhich(options[0]?.key ?? "decision"), [detail.claim_id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!options.length) {
+    return (
+      <section className="panel evidence">
+        <h3>Radar evidence</h3>
+        <div className="chart-empty">
+          <strong>No cached radar evidence for this boundary.</strong>
+          <span>
+            Nothing matches this claim ID, season and geometry, so there is no chart and no model score. Next action:{" "}
+            {actionLabel(detail.next_action)}.
+          </span>
+        </div>
+      </section>
+    );
+  }
+
+  const current = options.find((o) => o.key === which) ?? options[0];
+  const ev = current.ev;
+  const model = current.key === "decision" ? detail.model ?? ev.model : ev.model;
+  const gate = gateSummary(ev);
+  const score = model?.dsr_score;
+
+  return (
+    <section className="panel evidence">
+      <div className="evidence-top">
+        <h3>Radar evidence</h3>
+        {options.length > 1 ? (
+          <div className="seg seg-sm" role="tablist" aria-label="Evidence source">
+            {options.map((o) => (
+              <button key={o.key} role="tab" aria-selected={o.key === current.key} className={o.key === current.key ? "on" : ""} onClick={() => setWhich(o.key)}>
+                {o.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      {ev.source_kind === "simulated" ? (
+        <p className="sim-note">Simulated workflow evidence — values, scene IDs and score are fictional.</p>
+      ) : null}
+      <SignalChart evidence={ev} harvestDate={detail.reported_harvest_date} />
+      <div className="ev-chips">
+        <SourceTag kind={ev.source_kind} detail={<span className="mono">{ev.processing_version}</span>} />
+        <span className="chip-plain">
+          <strong>{ev.usable_count}</strong> of {ev.observations?.length ?? 0} acquisitions usable
+        </span>
+        <span className={`chip-plain ${gate.ok ? "ok" : "bad"}`}>{gate.ok ? "✓" : "✕"} {gate.text}</span>
+        <span className="chip-plain">
+          Model score{" "}
+          {score != null ? (
+            <strong>
+              {fmtNum(score, 2)}
+              {model?.source_kind === "simulated" ? " (simulated)" : ""}
+            </strong>
+          ) : (
+            <strong>unavailable</strong>
+          )}
+        </span>
+      </div>
+      {score == null && model?.compatibility_reason ? (
+        <p className="why-line" title={model.compatibility_reason}>
+          <strong>Why no score:</strong> {model.compatibility_reason}
+        </p>
+      ) : null}
+      <details className="ev-details">
+        <summary>Evidence details — provenance, gate, model, acquisitions with scene IDs</summary>
+        <div className="ev-details-body">
+          <Provenance evidence={ev} />
+          <div className="evidence-grid-2">
+            <QualityGateView evidence={ev} />
+            <ModelScore model={model} evidenceKind={ev.source_kind} />
+          </div>
+          <AcquisitionTable evidence={ev} defaultOpen harvestDate={detail.reported_harvest_date} />
+        </div>
+      </details>
     </section>
   );
 }
@@ -194,58 +220,9 @@ export function ClaimEvidence({ detail }: { detail: ClaimDetail }) {
   const retroSource = ev?.source_kind === "sentinel1_real" ? ev : real ?? ev;
   return (
     <div className="claim-evidence">
-      <section className="panel claim-head">
-        <div className="claim-title">
-          <h2>
-            Claim {detail.claim_id}
-            {detail.farmer_name ? (
-              <span className="muted">
-                {" "}
-                · {detail.farmer_name}
-                {/fictional/i.test(detail.farmer_name) ? "" : " (fictional)"}
-              </span>
-            ) : null}
-          </h2>
-          <span className="muted">
-            {detail.season} · claims <strong>{detail.claimed_method}</strong>
-            {detail.claimed_acres !== null ? ` · ${fmtNum(detail.claimed_acres)} ac` : ""}
-          </span>
-        </div>
-        <Recommendation item={detail} />
-      </section>
-
+      <Summary detail={detail} />
       {detail.reported_harvest_date ? <Retrospective detail={detail} evidence={retroSource} /> : null}
-
-      {ev ? (
-        <EvidenceBlock
-          evidence={ev}
-          heading={ev.source_kind === "simulated" ? "Decision evidence (simulated scenario)" : "Radar evidence · Sentinel-1"}
-          harvestDate={detail.reported_harvest_date}
-          model={detail.model}
-        />
-      ) : (
-        <section className="panel chart-empty-panel">
-          <h3>No cached radar evidence</h3>
-          <p>
-            Sabūt found no cached record matching this claim ID, season and boundary geometry, so there is nothing to chart
-            and <strong>no model score</strong> was produced.
-          </p>
-          <p>
-            <strong>Next action:</strong> {actionLabel(detail.next_action)}. {detail.reason}
-          </p>
-          <p className="muted small">
-            Reason code <span className="mono">{detail.reason_code}</span> · {humanize(detail.reason_code)}
-          </p>
-        </section>
-      )}
-
-      {real ? (
-        <EvidenceBlock
-          evidence={real}
-          heading="Real Sentinel-1 extraction for this boundary (shown alongside the simulation)"
-          harvestDate={detail.reported_harvest_date}
-        />
-      ) : null}
+      <EvidencePanel detail={detail} />
     </div>
   );
 }

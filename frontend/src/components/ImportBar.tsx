@@ -60,38 +60,26 @@ export function ImportBar({ onImported }: Props) {
             if (f) void onFile(f);
           }}
         />
-        {api.mode === "live" ? (
-          <a className="small" href="/demo/claims.geojson" download="claims.geojson">
-            Download demo GeoJSON
-          </a>
-        ) : null}
       </div>
       {st.state === "done" ? (
         <div className={`import-result ${st.res.errors.length ? "partial" : "ok"}`} role="status">
-          <p>
+          <span>
             <strong>{st.source}:</strong> {st.res.imported_ids.length} claim{st.res.imported_ids.length === 1 ? "" : "s"} accepted
             {st.res.imported_ids.length ? ` (${st.res.imported_ids.join(", ")})` : ""}
             {st.res.errors.length ? `, ${st.res.errors.length} feature${st.res.errors.length === 1 ? "" : "s"} rejected.` : "."}
-          </p>
+          </span>
           {st.res.errors.length ? (
-            <table className="err-table">
-              <thead>
-                <tr>
-                  <th>Feature</th>
-                  <th>Claim</th>
-                  <th>Problem</th>
-                </tr>
-              </thead>
-              <tbody>
+            <details open>
+              <summary>Rejected features</summary>
+              <ul className="err-list">
                 {st.res.errors.map((e, i) => (
-                  <tr key={i}>
-                    <td className="mono">#{e.index}</td>
-                    <td className="mono">{e.claim_id ?? "—"}</td>
-                    <td>{e.message}</td>
-                  </tr>
+                  <li key={i}>
+                    <span className="mono">#{e.index}</span>
+                    {e.claim_id ? <span className="mono"> {e.claim_id}</span> : null} — {e.message}
+                  </li>
                 ))}
-              </tbody>
-            </table>
+              </ul>
+            </details>
           ) : null}
         </div>
       ) : null}
@@ -99,6 +87,11 @@ export function ImportBar({ onImported }: Props) {
         <div className="import-result err" role="alert">
           <strong>{st.source} was not imported.</strong> {st.message}
         </div>
+      ) : null}
+      {api.mode === "live" ? (
+        <a className="import-link" href="/demo/claims.geojson" download="claims.geojson">
+          Download demo GeoJSON
+        </a>
       ) : null}
     </section>
   );
