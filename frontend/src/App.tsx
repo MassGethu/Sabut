@@ -15,13 +15,27 @@ type View = "officer" | "farmer" | "results";
 function readHash(): { view: View; claim: string | null } {
   const [, view, claim] = window.location.hash.split("/");
   const v: View = view === "farmer" || view === "results" ? view : "officer";
-  return { view: v, claim: claim ? decodeURIComponent(claim) : null };
+  try {
+    return { view: v, claim: v !== "results" && claim ? decodeURIComponent(claim) : null };
+  } catch {
+    return { view: v, claim: null };
+  }
+}
+
+function viewHref(view: View, claim?: string | null) {
+  return `#/${view}${claim ? `/${encodeURIComponent(claim)}` : ""}`;
+}
+
+function focusSection(id: string) {
+  const section = document.getElementById(id);
+  section?.focus({ preventScroll: true });
+  section?.scrollIntoView({ block: "start" });
 }
 
 function storedLanguage(): Language {
   try {
     const l = localStorage.getItem("sabut.lang");
-    return l === "pa" ? "pa" : "hi";
+    return l === "pa" || l === "en" ? l : "hi";
   } catch {
     return "hi";
   }
@@ -30,17 +44,21 @@ function storedLanguage(): Language {
 export default function App() {
   const [view, setView] = useState<View>(() => readHash().view);
   const [budget, setBudget] = useState(0);
+  const [officerName, setOfficerName] = useState("Meena");
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [details, setDetails] = useState<Record<string, ClaimDetail>>({});
-  const [selectedId, setSelectedId] = useState<string | null>(() => readHash().claim);
+  const [selectedId, setSelectedId] = useState<string | null>(() => readHash().view === "officer" ? readHash().claim : null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [justAllocated, setJustAllocated] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [health, setHealth] = useState<"checking" | "ok" | "down">("checking");
   const [language, setLanguage] = useState<Language>(storedLanguage);
-  const [farmerClaim, setFarmerClaim] = useState<string | null>(null);
+  const [farmerClaim, setFarmerClaim] = useState<string | null>(() => readHash().view === "farmer" ? readHash().claim : null);
   const [highlightReceipt, setHighlightReceipt] = useState<{ claim: string; id: string | number } | null>(null);
+  const previousView = useRef(view);
+  const pendingReceipt = useRef(false);
+  const comparisonTrigger = useRef<HTMLElement | null>(null);
   const seq = useRef(0);
   const prevQueue = useRef<QueueItem[]>([]);
 
@@ -49,6 +67,13 @@ export default function App() {
     const on = () => {
       const h = readHash();
       setView(h.view);
+      if (h.view === "results") {
+        const id = window.location.hash.slice(1);
+        window.requestAnimationFrame(() => {
+          if (id === "/results") window.scrollTo(0, 0);
+          else focusSection(id);
+        });
+      }
       if (h.claim) {
         if (h.view === "farmer") setFarmerClaim(h.claim);
         else setSelectedId(h.claim);
@@ -58,11 +83,17 @@ export default function App() {
     return () => window.removeEventListener("hashchange", on);
   }, []);
 
-  const go = useCallback((v: View, claim?: string | null) => {
-    const hash = `#/${v}${claim ? `/${encodeURIComponent(claim)}` : ""}`;
-    if (window.location.hash !== hash) window.location.hash = hash;
-    setView(v);
-  }, []);
+  useEffect(() => {
+    const section = view === "results" && window.location.hash.slice(1).startsWith("/results/")
+      ? window.location.hash.slice(1)
+      : "main-content";
+    if (section !== "main-content") focusSection(section);
+    else if (view !== previousView.current && !pendingReceipt.current) {
+      window.scrollTo(0, 0);
+      document.getElementById(section)?.focus({ preventScroll: true });
+    }
+    previousView.current = view;
+  }, [view]);
 
   useEffect(() => {
     try {
@@ -107,9 +138,8 @@ export default function App() {
       .health()
       .then(() => setHealth("ok"))
       .catch(() => setHealth("down"));
-    void refresh(budget);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    void refresh(0);
+  }, [refresh]);
 
   function changeBudget(b: number) {
     setBudget(b);
@@ -130,15 +160,18 @@ export default function App() {
     void refresh(budget);
   }
 
-  function select(id: string, additive = false) {
+  function select(id: string, additive = false, fromQueue = false) {
     if (additive) {
       toggleCompare(id);
       return;
     }
     setSelectedId(id);
     if (view === "officer") {
-      const hash = `#/officer/${encodeURIComponent(id)}`;
+      const hash = viewHref("officer", id);
       if (window.location.hash !== hash) history.replaceState(null, "", hash);
+      if (fromQueue && window.matchMedia("(max-width: 980px)").matches) {
+        window.requestAnimationFrame(() => focusSection("claim-summary"));
+      }
     }
   }
 
@@ -167,8 +200,29 @@ export default function App() {
   const allClaims = queue.map((i) => details[i.claim_id]).filter(Boolean) as ClaimDetail[];
   const hasAB = details.A && details.B;
 
+  useEffect(() => {
+    if (view !== "officer" || !pendingReceipt.current || !highlightReceipt) return;
+    const entry = document.querySelector<HTMLElement>(".tl-new");
+    if (entry) {
+      pendingReceipt.current = false;
+      entry.focus({ preventScroll: true });
+      entry.scrollIntoView({ block: "center" });
+    }
+  }, [view, selected, highlightReceipt]);
+
+  function showComparison(trigger: HTMLElement) {
+    comparisonTrigger.current = trigger;
+    window.requestAnimationFrame(() => focusSection("claim-comparison"));
+  }
+
   return (
     <div className="app">
+      <a className="skip-link" href="#main-content" onClick={(event) => {
+        event.preventDefault();
+        focusSection("main-content");
+      }}>
+        Skip to main content
+      </a>
       <header className="topbar">
         <div className="brand">
           <span className="logo" aria-hidden>
@@ -184,15 +238,15 @@ export default function App() {
           </div>
         </div>
         <nav className="tabs" aria-label="Views">
-          <button className={view === "officer" ? "on" : ""} onClick={() => go("officer", selectedId)}>
+          <a href={viewHref("officer", selectedId)} aria-current={view === "officer" ? "page" : undefined}>
             Officer workspace
-          </button>
-          <button className={view === "farmer" ? "on" : ""} onClick={() => go("farmer", farmerClaim ?? selectedId)}>
-            Farmer preview <span className="tab-lang">हि · ਪੰ</span>
-          </button>
-          <button className={view === "results" ? "on" : ""} onClick={() => go("results")}>
+          </a>
+          <a href={viewHref("farmer", farmerClaim ?? selectedId)} aria-current={view === "farmer" ? "page" : undefined}>
+            Farmer preview
+          </a>
+          <a href={viewHref("results")} aria-current={view === "results" ? "page" : undefined}>
             Evidence &amp; results
-          </button>
+          </a>
         </nav>
         <div className="status-area">
           <span className="persona">Meena · ADO, Haryana (fictional)</span>
@@ -218,13 +272,20 @@ export default function App() {
       ) : null}
 
       {view === "officer" ? (
-        <main className="officer">
+        <main className="officer" id="main-content" tabIndex={-1} aria-label="Officer workspace">
           <aside className="sidebar">
             <ImportBar onImported={onImported} />
             <BudgetControl budget={budget} items={queue} loading={loading} onChange={changeBudget} />
             <div className="queue-head">
-              <h3>Queue</h3>
-              <span className="muted small">{queue.length} claim{queue.length === 1 ? "" : "s"} · server order</span>
+              <h1 id="claim-queue" tabIndex={-1}>Claim queue</h1>
+              <span className="muted small">{queue.length} claim{queue.length === 1 ? "" : "s"}</span>
+              {compareClaims.length === 2 ? (
+                <button className="link-btn" onClick={(event) => showComparison(event.currentTarget)}>View comparison</button>
+              ) : selected ? (
+                <button className="link-btn narrow-shortcut" onClick={() => focusSection("claim-summary")}>
+                  View claim {selected.claim_id}
+                </button>
+              ) : null}
             </div>
             <Queue
               items={queue}
@@ -232,7 +293,7 @@ export default function App() {
               compareIds={compareIds}
               justAllocated={justAllocated}
               loading={loading}
-              onSelect={(id) => select(id)}
+              onSelect={(id) => select(id, false, true)}
               onToggleCompare={toggleCompare}
             />
           </aside>
@@ -245,7 +306,10 @@ export default function App() {
               onSelect={select}
               tools={
                 hasAB && compareClaims.length < 2 ? (
-                  <button className="map-btn map-btn-primary" onClick={() => setCompareIds(["A", "B"])}>
+                  <button className="map-btn map-btn-primary" onClick={(event) => {
+                    setCompareIds(["A", "B"]);
+                    showComparison(event.currentTarget);
+                  }}>
                     Compare A · B
                   </button>
                 ) : null
@@ -253,29 +317,49 @@ export default function App() {
             />
 
             {compareClaims.length >= 2 ? (
-              <Compare claims={compareClaims} onClose={() => setCompareIds([])} onFocus={(id) => select(id)} />
+              <Compare
+                claims={compareClaims}
+                onClose={() => {
+                  setCompareIds([]);
+                  const trigger = comparisonTrigger.current;
+                  comparisonTrigger.current = null;
+                  window.requestAnimationFrame(() => {
+                    if (!trigger || trigger.closest(".queue-head")) {
+                      focusSection("claim-queue");
+                    } else {
+                      document.querySelector<HTMLElement>(".map-btn-primary")?.focus();
+                    }
+                  });
+                }}
+                onFocus={(id) => {
+                  select(id);
+                  window.requestAnimationFrame(() => focusSection("claim-summary"));
+                }}
+              />
             ) : null}
 
             {selected ? (
               <div className="detail-grid">
-                <ClaimEvidence detail={selected} />
+                <ClaimEvidence detail={selected} summaryActions={
+                  <div className="claim-shortcuts narrow-shortcut">
+                    <button className="link-btn" onClick={() => focusSection("claim-queue")}>Back to queue</button>
+                    <button className="link-btn" onClick={() => focusSection("action-h")}>Go to decision</button>
+                  </div>
+                } />
                 <div className="detail-side">
                   <ActionPanel
+                    key={selected.claim_id}
                     detail={selected}
                     budget={budget}
+                    actor={officerName}
+                    onActorChange={setOfficerName}
                     onSaved={() => void reloadClaim(selected.claim_id)}
                     highlightReceiptId={highlightReceipt?.claim === selected.claim_id ? highlightReceipt.id : null}
                   />
                   <div className="side-links">
-                    <button
-                      className="btn btn-ghost btn-block"
-                      onClick={() => {
-                        setFarmerClaim(selected.claim_id);
-                        go("farmer", selected.claim_id);
-                      }}
-                    >
+                    <a className="btn btn-ghost btn-block" href={viewHref("farmer", selected.claim_id)}>
                       Preview farmer card for {selected.claim_id} →
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -287,7 +371,7 @@ export default function App() {
       ) : null}
 
       {view === "farmer" ? (
-        <main className="farmer-main">
+        <main className="farmer-main" id="main-content" tabIndex={-1}>
           <FarmerPreview
             claims={allClaims}
             claimId={farmerClaim ?? selectedId}
@@ -295,7 +379,7 @@ export default function App() {
             onLanguage={setLanguage}
             onClaim={(id) => {
               setFarmerClaim(id);
-              history.replaceState(null, "", `#/farmer/${encodeURIComponent(id)}`);
+              history.replaceState(null, "", viewHref("farmer", id));
             }}
             onSubmitted={(claimId, receipt: ReviewReceipt) => {
               setHighlightReceipt({ claim: claimId, id: receipt.id });
@@ -304,22 +388,16 @@ export default function App() {
             onOpenOfficer={(claimId, receiptId) => {
               setHighlightReceipt({ claim: claimId, id: receiptId });
               setSelectedId(claimId);
-              go("officer", claimId);
-              window.setTimeout(() => document.querySelector(".tl-new")?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
+              pendingReceipt.current = true;
+              window.location.hash = viewHref("officer", claimId);
             }}
           />
         </main>
       ) : null}
 
       {view === "results" ? (
-        <main className="results-main">
-          <ResultsView
-            claims={allClaims}
-            onOpenClaim={(id) => {
-              setSelectedId(id);
-              go("officer", id);
-            }}
-          />
+        <main className="results-main" id="main-content" tabIndex={-1}>
+          <ResultsView claims={allClaims} />
         </main>
       ) : null}
 

@@ -18,7 +18,7 @@ export function Queue({ items, selectedId, compareIds, justAllocated, loading, o
     return <div className="queue-empty">{loading ? "Loading queue…" : "No claims yet. Load the demo batch or upload GeoJSON."}</div>;
   }
   return (
-    <ol className={`queue ${loading ? "is-loading" : ""}`} aria-label="Claim queue in server order">
+    <ol className={`queue ${loading ? "is-loading" : ""}`} aria-label="Claim queue in server order" aria-busy={loading}>
       {items.map((it) => {
         const sel = it.claim_id === selectedId;
         const cmp = compareIds.includes(it.claim_id);
@@ -81,7 +81,7 @@ export function BudgetControl({ budget, items, loading, onChange }: BudgetProps)
           <output className="budget-value" aria-live="polite">
             {budget}
           </output>
-          <button className="btn-step" onClick={() => onChange(Math.min(max, budget + 1))} aria-label="Increase visit budget">
+          <button className="btn-step" onClick={() => onChange(Math.min(max, budget + 1))} disabled={budget >= max} aria-label="Increase visit budget">
             +
           </button>
         </div>

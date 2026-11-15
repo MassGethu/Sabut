@@ -1,4 +1,4 @@
-// Plain-language farmer card strings in Hindi and Punjabi. Keys follow the
+// Plain-language farmer card strings in Hindi, Punjabi, and English. Keys follow the
 // contract's status and next-action codes so the card always reflects the
 // server's recommendation or Meena's recorded action.
 import type { ActionValue, Language, Status } from "../api/types";
@@ -157,6 +157,64 @@ export const FARMER_TEXT: Record<Language, FarmerStrings> = {
     previous: "ਪਿਛਲੀਆਂ ਬੇਨਤੀਆਂ",
     simulatedNote: "ਡੈਮੋ: ਕਿਸਾਨ ਅਤੇ ਦਾਅਵਾ ਕਾਲਪਨਿਕ ਹਨ।",
   },
+  en: {
+    languageName: "English",
+    cardTitle: "Your rice claim status",
+    claim: "Claim number",
+    season: "Season",
+    claimedMethod: "Reported planting method",
+    methods: { DSR: "Direct-seeded rice (DSR)", PTR: "Transplanted rice (PTR)" },
+    acres: (n) => `${n} ${n === 1 ? "acre" : "acres"}`,
+    statusHeading: "Satellite review result",
+    officerOverride: "The officer chose a different next step from the system’s recommendation. Follow the officer’s decision below.",
+    officerNextHeading: "Officer’s decision",
+    status: {
+      ready_for_desk_review: {
+        title: "Ready for office review",
+        body: "The satellite data matches the planting method you reported. An officer will review your documents at the office.",
+      },
+      field_check_recommended: {
+        title: "Farm visit recommended",
+        body: "The satellite data could not confirm how you planted the rice. A team may visit your field to check.",
+      },
+      insufficient_evidence: {
+        title: "Not enough evidence",
+        body: "The satellite data did not give a clear enough view of your field to check your claim.",
+      },
+    },
+    nextStepHeading: "Next step",
+    nextStep: {
+      desk_review: "An officer will review your documents at the office. You don’t need to do anything now.",
+      request_field_visit: "A team may visit your field. Have your planting date and any records of seeding or transplanting ready.",
+      request_boundary_correction: "Please send the correct boundary of your field so the officer can review the right area.",
+      request_records: "Please send dated planting records, such as a seed receipt or a bill for planting equipment.",
+    },
+    officerRecorded: "Action recorded by the officer",
+    officerPending: "The officer has yet to record a decision. This is the system’s recommendation.",
+    fieldQuestionHeading: "What the team will ask",
+    fieldQuestion: "Did you sow the rice directly in this field or transplant seedlings? Tell the team the date you planted.",
+    rightsHeading: "Your right to request a correction",
+    rights: "An officer makes the final decision. You can request a correction if any information is wrong.",
+    formHeading: "Request a correction",
+    formIntro: "Tell us what is wrong or what records you have.",
+    reasonLabel: "Your reason",
+    reasonPlaceholder: "For example, I have a seed receipt.",
+    presets: [
+      "I have planting records.",
+      "My field boundary is shown incorrectly.",
+      "I sowed the rice directly. Please check again.",
+    ],
+    submit: "Send request",
+    submitting: "Sending…",
+    required: "Enter a reason for your request.",
+    receiptHeading: "Your request was recorded",
+    receiptId: "Receipt number",
+    receiptTime: "Time",
+    receiptLanguage: "Language",
+    receiptSimulated: "This request is simulated for the demo.",
+    previous: "Previous requests",
+    simulatedNote: "Demo: The farmer and claim are fictional.",
+  },
 };
 
-export const LANGUAGE_NAME: Record<Language, string> = { hi: "हिन्दी", pa: "ਪੰਜਾਬੀ" };
+export const LANGUAGE_NAME: Record<Language, string> = { hi: "हिन्दी", pa: "ਪੰਜਾਬੀ", en: "English" };

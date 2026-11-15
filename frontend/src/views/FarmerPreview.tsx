@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError, api } from "../api/client";
 import type { ClaimDetail, Language, ReviewReceipt } from "../api/types";
 import { fmtLocal } from "../format";
@@ -24,6 +24,7 @@ type Submit =
 export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, onSubmitted, onOpenOfficer }: Props) {
   const t = FARMER_TEXT[language];
   const detail = claims.find((c) => c.claim_id === claimId) ?? claims[0] ?? null;
+  const reasonInput = useRef<HTMLTextAreaElement>(null);
   const [reason, setReason] = useState("");
   const [touched, setTouched] = useState(false);
   const [submit, setSubmit] = useState<Submit>({ state: "idle" });
@@ -37,7 +38,7 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
   if (!detail) {
     return (
       <div className="farmer-empty panel">
-        <h2>Farmer preview</h2>
+        <h1>Farmer preview</h1>
         <p>Load the demo batch in the officer workspace first.</p>
       </div>
     );
@@ -52,7 +53,11 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
   async function send(e: React.FormEvent) {
     e.preventDefault();
     setTouched(true);
-    if (!reason.trim() || submit.state === "sending" || !detail) return;
+    if (submit.state === "sending" || !detail) return;
+    if (!reason.trim()) {
+      reasonInput.current?.focus();
+      return;
+    }
     setSubmit({ state: "sending" });
     try {
       const receipt = await api.requestReview(detail.claim_id, { reason: reason.trim(), language });
@@ -67,48 +72,44 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
 
   return (
     <div className="farmer-layout">
-      <aside className="farmer-controls panel">
-        <h2>Farmer preview</h2>
+      <section className="farmer-controls panel" aria-label="Preview settings">
+        <h1>Farmer preview</h1>
         <p className="muted small">
           A local preview of the card a farmer would receive. Farmers and claims are fictional; correction requests are
           simulated but saved through the API.
         </p>
-        <label className="field">
-          <span>Claim</span>
-          <select value={detail.claim_id} onChange={(e) => onClaim(e.target.value)}>
-            {claims.map((c) => (
-              <option key={c.claim_id} value={c.claim_id}>
-                {c.claim_id} — {statusLabel(c.status)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="field">
-          <span>Language</span>
-          <div className="seg" role="radiogroup" aria-label="Card language">
-            {(["hi", "pa"] as Language[]).map((l) => (
-              <button
-                key={l}
-                role="radio"
-                aria-checked={language === l}
-                className={language === l ? "on" : ""}
-                onClick={() => onLanguage(l)}
-                lang={l}
-              >
-                {LANGUAGE_NAME[l]}
-              </button>
-            ))}
-          </div>
+        <div className="preview-settings">
+          <label className="field">
+            <span>Claim</span>
+            <select name="claim" value={detail.claim_id} onChange={(e) => onClaim(e.target.value)}>
+              {claims.map((c) => (
+                <option key={c.claim_id} value={c.claim_id}>
+                  {c.claim_id} — {statusLabel(c.status)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <fieldset className="field language-field">
+            <legend>Language</legend>
+            <div className="seg">
+              {(["hi", "pa", "en"] as const).map((l) => (
+                <label key={l} className={language === l ? "on" : ""} lang={l}>
+                  <input type="radio" name="card-language" value={l} checked={language === l} onChange={() => onLanguage(l)} />
+                  {LANGUAGE_NAME[l]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
         </div>
-        <div className="officer-gloss">
-          <span className="eyebrow">Officer view of this card (English)</span>
+        <details className="officer-gloss">
+          <summary>Officer view of this card (English)</summary>
           <p>
             Satellite review status: <strong>{statusLabel(detail.status)}</strong>
             <br />
             Shown next step: <strong>{actionLabel(step)}</strong> {recorded ? (overridden ? "(Meena's override of the recommendation)" : "(Meena's recorded action)") : "(recommendation; nothing recorded yet)"}
           </p>
-        </div>
-      </aside>
+        </details>
+      </section>
 
       <article className={`farmer-card lang-${language}`} lang={language} aria-label="Farmer evidence card">
         <header className="fc-head">
@@ -173,7 +174,7 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
           <p className="small">{t.formIntro}</p>
           <div className="fc-presets">
             {t.presets.map((p) => (
-              <button type="button" key={p} className="chip" onClick={() => setReason(p)}>
+              <button type="button" key={p} className="chip" aria-pressed={reason === p} disabled={submit.state === "sending"} onClick={() => setReason(p)}>
                 {p}
               </button>
             ))}
@@ -181,15 +182,20 @@ export function FarmerPreview({ claims, claimId, language, onLanguage, onClaim, 
           <label className="field">
             <span>{t.reasonLabel}</span>
             <textarea
+              ref={reasonInput}
+              name="reason"
+              autoComplete="off"
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={t.reasonPlaceholder}
+              aria-required="true"
               aria-invalid={touched && !reason.trim()}
+              aria-describedby={touched && !reason.trim() ? "farmer-reason-error" : undefined}
               disabled={submit.state === "sending"}
             />
           </label>
-          {touched && !reason.trim() ? <p className="err-text small">{t.required}</p> : null}
+          {touched && !reason.trim() ? <p className="err-text small" id="farmer-reason-error" role="alert">{t.required}</p> : null}
           <button className="btn btn-primary" type="submit" disabled={submit.state === "sending"}>
             {submit.state === "sending" ? t.submitting : t.submit}
           </button>

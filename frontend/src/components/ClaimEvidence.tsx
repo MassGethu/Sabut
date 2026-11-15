@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { ClaimDetail, EvidenceRecord } from "../api/types";
 import { fmtDate, fmtNum, utcMs } from "../format";
 import { actionLabel, humanize } from "../i18n/labels";
@@ -11,12 +11,12 @@ function fictional(name: string) {
 }
 
 /** Server recommendation for the selected claim, shown as returned. */
-function Summary({ detail }: { detail: ClaimDetail }) {
+function Summary({ detail, actions }: { detail: ClaimDetail; actions: ReactNode }) {
   return (
     <section className="panel claim-summary">
       <header className="claim-head">
         <div>
-          <h2>Claim {detail.claim_id}</h2>
+          <h2 id="claim-summary" tabIndex={-1}>Claim {detail.claim_id}</h2>
           <p className="claim-meta">
             {detail.farmer_name ? `${fictional(detail.farmer_name)} · ` : ""}
             {detail.season} · claims <strong>{detail.claimed_method}</strong> ·{" "}
@@ -65,6 +65,7 @@ function Summary({ detail }: { detail: ClaimDetail }) {
           </span>
         )}
       </p>
+      {actions}
     </section>
   );
 }
@@ -163,9 +164,9 @@ function EvidencePanel({ detail }: { detail: ClaimDetail }) {
       <div className="evidence-top">
         <h3>Radar evidence</h3>
         {options.length > 1 ? (
-          <div className="seg seg-sm" role="tablist" aria-label="Evidence source">
+          <div className="seg seg-sm" role="group" aria-label="Evidence source">
             {options.map((o) => (
-              <button key={o.key} role="tab" aria-selected={o.key === current.key} className={o.key === current.key ? "on" : ""} onClick={() => setWhich(o.key)}>
+              <button key={o.key} type="button" aria-pressed={o.key === current.key} className={o.key === current.key ? "on" : ""} onClick={() => setWhich(o.key)}>
                 {o.label}
               </button>
             ))}
@@ -214,13 +215,13 @@ function EvidencePanel({ detail }: { detail: ClaimDetail }) {
   );
 }
 
-export function ClaimEvidence({ detail }: { detail: ClaimDetail }) {
+export function ClaimEvidence({ detail, summaryActions }: { detail: ClaimDetail; summaryActions: ReactNode }) {
   const ev = detail.evidence;
   const real = detail.real_evidence;
   const retroSource = ev?.source_kind === "sentinel1_real" ? ev : real ?? ev;
   return (
     <div className="claim-evidence">
-      <Summary detail={detail} />
+      <Summary detail={detail} actions={summaryActions} />
       {detail.reported_harvest_date ? <Retrospective detail={detail} evidence={retroSource} /> : null}
       <EvidencePanel detail={detail} />
     </div>

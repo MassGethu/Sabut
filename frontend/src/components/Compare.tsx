@@ -19,16 +19,16 @@ export function Compare({ claims, onClose, onFocus }: { claims: ClaimDetail[]; o
   return (
     <section className="panel compare" aria-label="Claim comparison">
       <div className="compare-top">
-        <h3>
+        <h2 id="claim-comparison" tabIndex={-1}>
           Compare {claims.map((c) => c.claim_id).join(" · ")}
           {sameMethod ? <span className="muted"> — both claim {claims[0].claimed_method}</span> : null}
-        </h3>
+        </h2>
         {hasReal ? (
-          <div className="seg seg-sm" role="tablist" aria-label="Comparison evidence source">
-            <button role="tab" aria-selected={source === "decision"} className={source === "decision" ? "on" : ""} onClick={() => setSource("decision")}>
+          <div className="seg seg-sm" role="group" aria-label="Comparison evidence source">
+            <button type="button" aria-pressed={source === "decision"} className={source === "decision" ? "on" : ""} onClick={() => setSource("decision")}>
               Decision evidence
             </button>
-            <button role="tab" aria-selected={source === "real"} className={source === "real" ? "on" : ""} onClick={() => setSource("real")}>
+            <button type="button" aria-pressed={source === "real"} className={source === "real" ? "on" : ""} onClick={() => setSource("real")}>
               Real Sentinel-1
             </button>
           </div>

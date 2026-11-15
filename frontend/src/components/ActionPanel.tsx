@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError, api } from "../api/client";
 import type { ActionEvent, ActionValue, ClaimDetail, ReviewReceipt } from "../api/types";
 import { fmtLocal } from "../format";
@@ -9,6 +9,8 @@ import { Tag } from "./Badges";
 interface Props {
   detail: ClaimDetail;
   budget: number;
+  actor: string;
+  onActorChange: (actor: string) => void;
   onSaved: (event: ActionEvent) => void;
   highlightReceiptId?: string | number | null;
 }
@@ -19,12 +21,13 @@ type Submit =
   | { state: "saved"; event: ActionEvent }
   | { state: "error"; message: string };
 
-export function ActionPanel({ detail, budget, onSaved, highlightReceiptId }: Props) {
+export function ActionPanel({ detail, budget, actor, onActorChange, onSaved, highlightReceiptId }: Props) {
   const [action, setAction] = useState<ActionValue>(detail.next_action);
   const [reason, setReason] = useState("");
-  const [actor, setActor] = useState("Meena");
   const [submit, setSubmit] = useState<Submit>({ state: "idle" });
   const [touched, setTouched] = useState(false);
+  const reasonInput = useRef<HTMLTextAreaElement>(null);
+  const actorInput = useRef<HTMLInputElement>(null);
 
   // Reset the form when Meena switches claims.
   useEffect(() => {
@@ -36,12 +39,17 @@ export function ActionPanel({ detail, budget, onSaved, highlightReceiptId }: Pro
 
   const isOverride = action !== detail.next_action;
   const reasonMissing = !reason.trim();
+  const actorMissing = !actor.trim();
   const current = detail.actions.length ? detail.actions[detail.actions.length - 1] : null;
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setTouched(true);
-    if (reasonMissing || !actor.trim() || submit.state === "saving") return;
+    if (submit.state === "saving") return;
+    if (reasonMissing || actorMissing) {
+      (reasonMissing ? reasonInput.current : actorInput.current)?.focus();
+      return;
+    }
     setSubmit({ state: "saving" });
     try {
       const event = await api.recordAction(detail.claim_id, budget, {
@@ -63,7 +71,7 @@ export function ActionPanel({ detail, budget, onSaved, highlightReceiptId }: Pro
 
   return (
     <section className="panel action-panel" aria-labelledby="action-h">
-      <h3 id="action-h">Meena's decision</h3>
+      <h2 id="action-h" tabIndex={-1}>Meena's decision</h2>
       <p className="muted small action-sub">Sabūt recommends. Meena decides; approval and payment stay outside the app.</p>
 
       <div className="current-row">
@@ -102,6 +110,9 @@ export function ActionPanel({ detail, budget, onSaved, highlightReceiptId }: Pro
             <label className="field grow">
               <span>Reason {isOverride ? "for override" : ""} (required)</span>
               <textarea
+                ref={reasonInput}
+                name="reason"
+                autoComplete="off"
                 rows={2}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
@@ -110,13 +121,27 @@ export function ActionPanel({ detail, budget, onSaved, highlightReceiptId }: Pro
                     ? `e.g. ${detail.field_question.split("?")[0]}?`
                     : "Why are you taking this action?"
                 }
+                aria-required="true"
                 aria-invalid={touched && reasonMissing}
+                aria-describedby={touched && reasonMissing ? "decision-reason-error" : undefined}
               />
-              {touched && reasonMissing ? <small className="err-text">A reason is required for every action.</small> : null}
+              {touched && reasonMissing ? <small className="err-text" id="decision-reason-error" role="alert">A reason is required for every action.</small> : null}
             </label>
             <label className="field actor">
-              <span>Officer</span>
-              <input value={actor} onChange={(e) => setActor(e.target.value)} />
+              <span className="actor-field">
+                <span>Officer</span>
+                <input
+                  ref={actorInput}
+                  name="actor"
+                  autoComplete="off"
+                  value={actor}
+                  onChange={(e) => onActorChange(e.target.value)}
+                  aria-required="true"
+                  aria-invalid={touched && actorMissing}
+                  aria-describedby={touched && actorMissing ? "decision-officer-error" : undefined}
+                />
+              </span>
+              {touched && actorMissing ? <small className="err-text" id="decision-officer-error" role="alert">Enter the officer’s name.</small> : null}
             </label>
           </div>
           <div className="form-actions">
@@ -164,12 +189,14 @@ export function History({
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
 
   const [all, setAll] = useState(false);
-  const shown = all ? entries : entries.slice(0, 3);
+  const highlighted = entries.findIndex((entry) => entry.kind === "request" && String(entry.r.id) === String(highlightReceiptId));
+  const showAll = all || highlighted >= 3;
+  const shown = showAll ? entries : entries.slice(0, 3);
   return (
     <div className="history">
-      <h4>
+      <h3>
         History <span className="muted small">· {actions.length} action{actions.length === 1 ? "" : "s"}, {requests.length} farmer request{requests.length === 1 ? "" : "s"}</span>
-      </h4>
+      </h3>
       {!entries.length ? <p className="muted small">No recorded events for this claim.</p> : null}
       <ol className="timeline">
         {shown.map((en) =>
@@ -195,6 +222,7 @@ export function History({
           ) : (
             <li
               key={`r${en.r.id}`}
+              tabIndex={String(highlightReceiptId) === String(en.r.id) ? -1 : undefined}
               className={`tl-request ${String(highlightReceiptId) === String(en.r.id) ? "tl-new" : ""}`}
             >
               <div className="tl-head">
@@ -212,7 +240,7 @@ export function History({
           ),
         )}
       </ol>
-      {entries.length > 3 ? (
+      {entries.length > 3 && highlighted < 3 ? (
         <button className="link-btn small" onClick={() => setAll((v) => !v)}>
           {all ? "Show latest 3" : `Show all ${entries.length} events`}
         </button>

@@ -7,7 +7,7 @@ export type ActionValue =
   | "request_field_visit"
   | "request_boundary_correction"
   | "request_records";
-export type Language = "hi" | "pa";
+export type Language = "hi" | "pa" | "en";
 export type SourceKind = "sentinel1_real" | "simulated";
 
 export interface QueueItem {

@@ -30,7 +30,7 @@ class OfficerAction(BaseModel):
 
 class ReviewRequest(BaseModel):
     reason: Text
-    language: Literal["hi", "pa"]
+    language: Literal["hi", "pa", "en"]
 
 
 def settings_from_environment():

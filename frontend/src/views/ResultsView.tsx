@@ -133,7 +133,7 @@ function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
   return (
     <section className="panel">
       <div className="panel-head">
-        <h3>Ricemapper benchmark · published vs reproduced</h3>
+        <h2>Ricemapper benchmark · published vs reproduced</h2>
         <Tag tone="info">Public feature table · not Haryana accuracy</Tag>
       </div>
       {isObj(report.comparison_on_test) ? (
@@ -148,24 +148,24 @@ function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
       )}
       {isObj(report.split) ? (
         <div className="report-block">
-          <h4>Evaluation method</h4>
+          <h3>Evaluation method</h3>
           <JsonTree value={report.split} />
         </div>
       ) : method !== undefined ? (
         <div className="report-block">
-          <h4>Evaluation method</h4>
+          <h3>Evaluation method</h3>
           <JsonTree value={method} />
         </div>
       ) : null}
       {Array.isArray(report.protocol_differences) ? (
         <div className="report-block">
-          <h4>Differences from the published protocol</h4>
+          <h3>Differences from the published protocol</h3>
           <JsonTree value={report.protocol_differences} />
         </div>
       ) : null}
       {limitations !== undefined ? (
         <div className="report-block limits">
-          <h4>Limitations</h4>
+          <h3>Limitations</h3>
           <JsonTree value={limitations} />
         </div>
       ) : null}
@@ -206,7 +206,7 @@ function TrackComparison({ report }: { report: Record<string, Json> }) {
           ) : null}
         </p>
       </div>
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0} role="region" aria-label="Benchmark track results">
         <table aria-label="Ricemapper rerun metrics on the held-out test set">
           <thead>
             <tr>
@@ -265,7 +265,7 @@ function ReplayTable({ report }: { report: Record<string, Json> }) {
         <Metric label="Random seed" value={report.seed} />
         <Metric label="Outcome source" value={report.outcome_source} />
       </div>
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0} role="region" aria-label="Visit replay results">
         <table aria-label="Simulated outcomes at the same visit budget">
           <thead>
             <tr>
@@ -314,7 +314,7 @@ function ReplayPanel({ report }: { report: Record<string, Json> }) {
   return (
     <section className="panel">
       <div className="panel-head">
-        <h3>Same-budget replay</h3>
+        <h2>Same-budget replay</h2>
         <Tag tone="warn">Simulation · inspection outcomes are simulated</Tag>
       </div>
       <p className="muted small">
@@ -330,12 +330,12 @@ function ReplayPanel({ report }: { report: Record<string, Json> }) {
   );
 }
 
-function RealExtraction({ records, onOpen }: { records: { claim: ClaimDetail; ev: EvidenceRecord }[]; onOpen: (id: string) => void }) {
+function RealExtraction({ records }: { records: { claim: ClaimDetail; ev: EvidenceRecord }[] }) {
   if (!records.length) {
     return (
       <section className="panel">
         <div className="panel-head">
-          <h3>Real Sentinel-1 extraction</h3>
+          <h2>Real Sentinel-1 extraction</h2>
           <Tag>Pending</Tag>
         </div>
         <p className="muted">
@@ -350,13 +350,13 @@ function RealExtraction({ records, onOpen }: { records: { claim: ClaimDetail; ev
       {records.map(({ claim, ev }, idx) => (
         <section className="panel" key={`${claim.claim_id}-${ev.processing_version}`}>
           <div className="panel-head">
-            <h3>
+            <h2>
               Real Sentinel-1 extraction · claim {claim.claim_id}
-            </h3>
+            </h2>
             <SourceTag kind={ev.source_kind} detail={<span className="mono">{ev.processing_version}</span>} />
-            <button className="btn btn-ghost btn-xs" onClick={() => onOpen(claim.claim_id)}>
-              Open in workspace
-            </button>
+            <a className="link-btn" href={`#/officer/${encodeURIComponent(claim.claim_id)}`}>
+              Open claim {claim.claim_id} in workspace
+            </a>
           </div>
           <div className="evidence-grid">
             <SignalChart evidence={ev} harvestDate={claim.reported_harvest_date} />
@@ -387,14 +387,14 @@ function RealExtraction({ records, onOpen }: { records: { claim: ClaimDetail; ev
 export function ResponsibleAI({ compact }: { compact?: boolean }) {
   return (
     <section className={`panel rai ${compact ? "rai-compact" : ""}`}>
-      <h3>Responsible AI</h3>
+      <h2>Responsible AI</h2>
       <ul>
         <li>
           <strong>Officer control.</strong> Sabūt recommends and ranks; Meena records every decision with a reason and can
           override. Approval, rejection and payment stay outside the app.
         </li>
         <li>
-          <strong>Farmer recourse.</strong> Plain-language status and next step in Hindi and Punjabi, with a correction
+          <strong>Farmer recourse.</strong> Plain-language status and next step in Hindi, Punjabi, and English, with a correction
           request that reaches the officer's record.
         </li>
         <li>
@@ -415,10 +415,10 @@ export function ResponsibleAI({ compact }: { compact?: boolean }) {
   );
 }
 
-export function ResultsView({ claims, onOpenClaim }: { claims: ClaimDetail[]; onOpenClaim: (id: string) => void }) {
+export function ResultsView({ claims }: { claims: ClaimDetail[] }) {
   const [data, setData] = useState<BenchmarkResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   async function load() {
     setLoading(true);
@@ -444,46 +444,65 @@ export function ResultsView({ claims, onOpenClaim }: { claims: ClaimDetail[]; on
 
   return (
     <div className="results">
-      <div className="results-head">
-        <h2>Evidence and results</h2>
-        <button className="btn btn-ghost btn-xs" onClick={() => void load()} disabled={loading}>
+      <header className="results-head">
+        <div>
+          <h1>Evidence and results</h1>
+          <p className="muted">
+            Review real radar extractions, the Ricemapper benchmark rerun and a labeled simulation of visit allocation.
+            Microsoft’s Ricemapper is the classification foundation.
+          </p>
+        </div>
+        <button className="btn" onClick={() => void load()} disabled={loading}>
           {loading ? "Refreshing…" : "Refresh reports"}
         </button>
-      </div>
-      <p className="muted">
-        Three kinds of proof, kept separate: real radar extraction, the public benchmark rerun, and a labeled simulation
-        of visit allocation. Ricemapper (Microsoft) is the disclosed classification foundation.
-      </p>
+      </header>
+      <nav className="report-nav" aria-label="On this page">
+        <a href="#/results/extraction">Radar extraction</a>
+        <a href="#/results/benchmark">Benchmark</a>
+        <a href="#/results/replay">Visit replay</a>
+        <a href="#/results/responsible-ai">Responsible AI</a>
+      </nav>
 
-      <RealExtraction records={real} onOpen={onOpenClaim} />
+      <div className="result-group" id="/results/extraction" tabIndex={-1}>
+        <RealExtraction records={real} />
+      </div>
 
       {error ? (
         <div className="panel err-panel" role="alert">
           Could not load reports: {error}
         </div>
       ) : null}
-      {data && !data.benchmark ? (
-        <section className="panel pending">
-          <div className="panel-head">
-            <h3>Ricemapper benchmark</h3>
-            <Tag>Pending</Tag>
-          </div>
-          <p className="muted">{data.message ?? "reports/benchmark.json is not available yet."}</p>
-        </section>
-      ) : null}
-      {data?.benchmark ? <BenchmarkPanel report={data.benchmark} /> : null}
-      {data && !data.replay ? (
-        <section className="panel pending">
-          <div className="panel-head">
-            <h3>Same-budget replay</h3>
-            <Tag>Pending</Tag>
-          </div>
-          <p className="muted">reports/replay.json is not available yet. It will compare the queue policy with random and score-only selection under the same budget, using simulated inspection outcomes.</p>
-        </section>
-      ) : null}
-      {data?.replay ? <ReplayPanel report={data.replay} /> : null}
-
-      <ResponsibleAI />
+      <div id="/results/benchmark" tabIndex={-1} aria-busy={loading}>
+        {!data?.benchmark ? (
+          <section className="panel pending">
+            <div className="panel-head">
+              <h2>Ricemapper benchmark</h2>
+              <Tag>{loading ? "Loading…" : error ? "Unavailable" : "Pending"}</Tag>
+            </div>
+            <p className="muted">
+              {loading ? "Loading the benchmark report…" : error ? "Use Refresh reports to try again." : data?.message ?? "reports/benchmark.json is not available yet."}
+            </p>
+          </section>
+        ) : null}
+        {data?.benchmark ? <BenchmarkPanel report={data.benchmark} /> : null}
+      </div>
+      <div id="/results/replay" tabIndex={-1} aria-busy={loading}>
+        {!data?.replay ? (
+          <section className="panel pending">
+            <div className="panel-head">
+              <h2>Same-budget replay</h2>
+              <Tag>{loading ? "Loading…" : error ? "Unavailable" : "Pending"}</Tag>
+            </div>
+            <p className="muted">
+              {loading ? "Loading the replay report…" : error ? "Use Refresh reports to try again." : "reports/replay.json is not available yet. It will compare the queue policy with random and score-only selection under the same budget, using simulated inspection outcomes."}
+            </p>
+          </section>
+        ) : null}
+        {data?.replay ? <ReplayPanel report={data.replay} /> : null}
+      </div>
+      <div id="/results/responsible-ai" tabIndex={-1}>
+        <ResponsibleAI />
+      </div>
     </div>
   );
 }

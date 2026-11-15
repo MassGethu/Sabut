@@ -60,7 +60,7 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
 
   useEffect(() => {
     if (!host.current || map.current) return;
-    const m = L.map(host.current, { attributionControl: false, zoomSnap: 0.25, maxZoom: 21, minZoom: 4 });
+    const m = L.map(host.current, { attributionControl: false, scrollWheelZoom: false, zoomSnap: 0.25, maxZoom: 21, minZoom: 4 });
     m.setView([29.7, 76.9], 15);
     fittedKey.current = ""; // a new map instance has not been fitted to the plots yet
     L.control.scale({ imperial: false, position: "bottomleft", maxWidth: 140 }).addTo(m);
@@ -165,53 +165,58 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
 
   return (
     <div className="map-wrap">
-      <div ref={host} className="map" aria-label="Claimed plot boundaries map" />
-      <div className="map-north" aria-hidden title="North">
-        <svg viewBox="0 0 24 32" width="18" height="24">
-          <path d="M12 2 L19 26 L12 21 L5 26 Z" fill="#1d2420" />
-          <path d="M12 2 L12 21 L5 26 Z" fill="#9aa093" />
-        </svg>
-        <span>N</span>
-      </div>
-      <div className="map-tools">
-        {tools}
-        <button className="map-btn" onClick={fitAll} disabled={!plots.length}>
-          Fit all
-        </button>
-        {selectedId ? (
-          <button className="map-btn" onClick={() => zoomTo(selectedId)}>
-            Zoom to {selectedId}
+      <header className="map-heading">
+        <h2>Claim map</h2>
+        <div className="map-tools">
+          {tools}
+          <button className="map-btn" onClick={fitAll} disabled={!plots.length}>
+            Fit all
           </button>
+          {selectedId && plots.some((plot) => plot.id === selectedId) ? (
+            <button className="map-btn" onClick={() => zoomTo(selectedId)}>
+              Zoom to {selectedId}
+            </button>
+          ) : null}
+        </div>
+      </header>
+      <div className="map-canvas">
+        <div ref={host} className="map" aria-label="Claimed plot boundaries map" />
+        <div className="map-north" aria-hidden title="North">
+          <svg viewBox="0 0 24 32" width="18" height="24">
+            <path d="M12 2 L19 26 L12 21 L5 26 Z" fill="#1d2420" />
+            <path d="M12 2 L12 21 L5 26 Z" fill="#9aa093" />
+          </svg>
+          <span>N</span>
+        </div>
+        {hover ? (
+          <div className="map-hover" aria-hidden="true">
+            <strong>Claim {hover.id}</strong>
+            <span className="map-hover-status" style={{ color: STATUS_COLOR[hover.status] }}>
+              {statusLabel(hover.status)}
+            </span>
+            <span>→ {actionLabel(hover.nextAction)}</span>
+            <span className="muted">
+              {hover.acres !== null ? `${fmtNum(hover.acres)} ac claimed` : "acreage not stated"}
+              {hover.inBudget ? ` · visit #${hover.rank}` : ""}
+            </span>
+          </div>
+        ) : null}
+        {cursor ? (
+          <div className="map-coords">
+            {cursor.lat.toFixed(5)}°N {cursor.lng.toFixed(5)}°E
+          </div>
+        ) : null}
+        {!plots.length ? (
+          <div className="map-empty">Load the demo batch or upload GeoJSON to draw the claimed plots.</div>
         ) : null}
       </div>
-      {hover ? (
-        <div className="map-hover" role="status">
-          <strong>Claim {hover.id}</strong>
-          <span className="map-hover-status" style={{ color: STATUS_COLOR[hover.status] }}>
-            {statusLabel(hover.status)}
-          </span>
-          <span>→ {actionLabel(hover.nextAction)}</span>
-          <span className="muted">
-            {hover.acres !== null ? `${fmtNum(hover.acres)} ac claimed` : "acreage not stated"}
-            {hover.inBudget ? ` · visit #${hover.rank}` : ""}
-          </span>
-        </div>
-      ) : null}
-      {cursor ? (
-        <div className="map-coords">
-          {cursor.lat.toFixed(5)}°N {cursor.lng.toFixed(5)}°E
-        </div>
-      ) : null}
-      {!plots.length ? (
-        <div className="map-empty">Load the demo batch or upload GeoJSON to draw the claimed plots.</div>
-      ) : null}
       <div className="map-legend">
         {Object.entries(STATUS_COLOR).map(([s, c]) => (
           <span key={s}>
             <i style={{ background: c }} className={s === "insufficient_evidence" ? "dashed" : ""} /> {statusLabel(s)}
           </span>
         ))}
-        <span className="muted map-legend-note">Offline · boundaries only · Shift-click to compare</span>
+        <span className="muted map-legend-note">Offline · boundaries only<span className="map-shift-hint"> · Shift-click to compare</span></span>
       </div>
     </div>
   );

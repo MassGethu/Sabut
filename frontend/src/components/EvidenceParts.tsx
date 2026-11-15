@@ -264,7 +264,7 @@ export function AcquisitionTable({ evidence, defaultOpen = false, harvestDate }:
       </button>
       {open ? (
         rows.length ? (
-          <div className="table-wrap">
+          <div className="table-wrap" tabIndex={0} role="region" aria-label="Acquisition records">
             <table>
               <thead>
                 <tr>

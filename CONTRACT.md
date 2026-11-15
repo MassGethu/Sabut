@@ -68,7 +68,7 @@ An unscored real export can set `model.compatible: false` and include its compat
 | `GET /api/queue?budget=1` | Return `budget` and `items`. Each item contains `claim_id`, `season`, `claimed_method`, `status`, `reason_code`, `reason`, `next_action`, nullable `rank`, `rank_reason`, `claimed_acres`, and `visit_priority`, and `in_visit_budget`. Reject negative budgets. |
 | `GET /api/claims/{id}` | Return the queue item fields, GeoJSON `geometry`, nullable decision `evidence`, nullable `real_evidence` when shown alongside a simulation, nullable `model`, nullable `reported_harvest_date`, `actions`, and `review_requests`. |
 | `POST /api/claims/{id}/actions` | Accept `action`, `reason`, and `actor`. Record a server UTC timestamp and the recommendation snapshot. Return the saved event including ID, action, reason, actor, timestamp, and whether it overrides the recommendation. |
-| `POST /api/claims/{id}/review-requests` | Accept `reason` and `language` (`hi` or `pa`). Return a persisted receipt with ID, timestamp, and `simulated: true`. |
+| `POST /api/claims/{id}/review-requests` | Accept `reason` and `language` (`hi`, `pa`, or `en`). Return a persisted receipt with ID, timestamp, and `simulated: true`. |
 | `GET /api/benchmark` | Return the benchmark and the replay report when present. Surface a clear pending state while artifacts are missing. |
 
 Working examples are in [examples/api](examples/api). A visit recommendation includes `field_question`. Claim detail and action recording accept an optional nonnegative `budget` query parameter (default 1) for the displayed rank and recommendation snapshot. A saved officer event uses `overrides_recommendation` and `recommendation`. Farmer receipts include the submitted `reason` and `language` so they can appear in officer history. The `actions` and `review_requests` arrays are both oldest first. The benchmark response is `{status, benchmark, replay, message}`. Status is `pending` with neither report, `partial` with one, or `ready` with both. Each unavailable report is null. Recommendation evidence includes `quality_gate` with the configured gates and a nullable `failed_criterion`.
@@ -131,7 +131,7 @@ The default companion files are `demo/replay-claims.geojson`, `demo/replay-evide
 
 - Upload the featured GeoJSON and compare neighboring A/B in the map and evidence view. Show C's weak-evidence reason and next action.
 - Change budget 0 → 1 and see B enter the visit allocation. Record A's desk-review action and B's visit request. Demonstrate an override and see all events after a restart.
-- Switch the farmer preview between Hindi and Punjabi. Submit a simulated correction and see its receipt and the officer-side event.
+- Switch the farmer preview between Hindi, Punjabi, and English. Submit a simulated correction and see its receipt and the officer-side event.
 - Import a fresh plot and inspect a deliberately incompatible export. Each has an actionable reason and no unsupported model score.
 - Open the real extraction, benchmark, and same-budget replay in the app. Identify the provenance and limits of each. Show a retrospective scenario using real pre-harvest acquisition dates and explain the next action.
 - Start from a clean checkout following the README. After dependency installation, run the whole judge workflow offline from cached data.
