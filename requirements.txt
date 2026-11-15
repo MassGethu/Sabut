@@ -1,0 +1,3 @@
+# Python dependencies for the Vercel deploy (local installs use backend/requirements.txt).
+-r backend/requirements.txt
+psycopg[binary]>=3.2,<4

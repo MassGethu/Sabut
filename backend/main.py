@@ -45,7 +45,8 @@ def settings_from_environment():
 
 
 def create_app(*, database=None, demo_dir=None, reports_dir=None, frontend_dist=None, settings=None):
-    database = Path(database or os.environ.get("SABUT_DB_PATH", ROOT / ".sabut" / "workspace.sqlite3"))
+    # DATABASE_URL (Postgres, e.g. Supabase) wins for hosted deploys; otherwise a local SQLite file.
+    database = database or os.environ.get("DATABASE_URL") or Path(os.environ.get("SABUT_DB_PATH", ROOT / ".sabut" / "workspace.sqlite3"))
     demo_dir = Path(demo_dir or ROOT / "demo")
     reports_dir = Path(reports_dir or ROOT / "reports")
     frontend_dist = Path(frontend_dist or ROOT / "frontend" / "dist")
@@ -105,15 +106,15 @@ def create_app(*, database=None, demo_dir=None, reports_dir=None, frontend_dist=
         with storage.connect(database) as db:
             return {"budget": budget, "items": [decision.item for decision in queue(db, budget)]}
 
-    def detail(db, claim, decision):
+    def detail(db, claim, decision, actions=None, requests=None):
         claim_id = claim["claim_id"]
         return {
             **decision.item, "geometry": json.loads(claim["geometry"]),
             "farmer_name": claim["farmer_name"],
             "reported_harvest_date": claim["reported_harvest_date"],
             "evidence": decision.evidence, "real_evidence": decision.real_evidence, "model": decision.model,
-            "actions": storage.action_history(db, claim_id),
-            "review_requests": storage.review_requests(db, claim_id),
+            "actions": storage.action_history(db, claim_id) if actions is None else actions.get(claim_id, []),
+            "review_requests": storage.review_requests(db, claim_id) if requests is None else requests.get(claim_id, []),
         }
 
     @app.get("/api/claims")
@@ -122,7 +123,8 @@ def create_app(*, database=None, demo_dir=None, reports_dir=None, frontend_dist=
         with storage.connect(database) as db:
             db.execute("BEGIN")
             rows = {row["claim_id"]: dict(row) for row in db.execute("SELECT * FROM claims")}
-            items = [detail(db, rows[d.item["claim_id"]], d) for d in queue(db, budget)]
+            actions, requests = storage.all_action_history(db), storage.all_review_requests(db)
+            items = [detail(db, rows[d.item["claim_id"]], d, actions, requests) for d in queue(db, budget)]
             return {"budget": budget, "items": items}
 
     @app.get("/api/claims/{claim_id}")

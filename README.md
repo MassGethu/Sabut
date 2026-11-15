@@ -28,6 +28,18 @@ After a frontend change, run `make build` and restart the server, because it rea
 
 For API work without the frontend, run `make install-api PYTHON=python3.14` and then `.venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1`. The API description is in [CONTRACT.md](CONTRACT.md), with [example payloads](examples/api).
 
+## Deploy a live demo (Vercel + Supabase)
+
+Vercel serves the built frontend and runs the API as one Python function (`api/index.py`). Supabase Postgres holds the claims, officer actions and farmer requests. Local runs keep using SQLite; Postgres is used only when `DATABASE_URL` is set.
+
+1. In Supabase, create a project in **East US (North Virginia)**, next to Vercel's default function region `iad1`. If you move the Vercel function region (Settings → Functions), move Supabase with it, because every page load queries the database.
+2. Open **Connect** and copy the **Transaction pooler** connection string (port `6543`). Put your database password into it.
+3. In Vercel, import this GitHub repository. Leave the framework preset as **Other**; `vercel.json` sets the build.
+4. Under **Settings → Environment Variables**, add `DATABASE_URL` with the pooler string. Never commit it.
+5. Deploy, open the URL and click **Load demo batch**. The tables are created on the first request.
+
+Without `DATABASE_URL` the function falls back to a throwaway SQLite file in `/tmp`, so state will not persist between requests.
+
 ## Verified offline workflow
 
 The presenting build was installed from an anonymous clean clone on macOS with Python 3.14 and Node.js 26. Chrome and the app then ran with external networking blocked and localhost available.
