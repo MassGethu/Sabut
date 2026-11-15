@@ -4,6 +4,8 @@
 
 INNOVEX 2026 · PS 02 · Smart Agriculture
 
+**[Open the live Sabūt website](https://sabut.vercel.app/)**
+
 An agriculture officer in Haryana has time for one field visit. Two neighboring farms both report direct-seeded rice (DSR). Which visit would help establish whether the farmer sowed seed directly or transplanted seedlings?
 
 Sabūt turns claimed plot boundaries and dated Sentinel-1 radar observations into a review queue the officer can inspect and act on. It shows why a claim is ready for desk review, needs a field visit, or calls for records or a corrected boundary. The officer records the next step, and the farmer can request a correction in their language.
