@@ -57,6 +57,7 @@ Each record carries `source_kind` (`sentinel1_real` or `simulated`), `window` (`
 
 Model output can be null. When provided, include `source_kind`, `model_version`, `feature_schema`, `compatible`, `compatibility_reason`, and nullable `dsr_score` (0–1). No score is emitted when compatibility is unverified. A real record's score must come from its compatible features. Show any simulated score as part of the labeled simulation. The featured scenario and the real extraction can share a plot map while keeping their cards and labels distinct.
 
+An unscored real export can set `model.compatible: false` and include its compatibility reason. To expose a real score, the API checks the producer's compatibility flag and matches `model_version` and the ordered `feature_schema` against the manifest. The manifest must also supply `validation_thresholds` with `ptr_max_score` and `dsr_min_score`, and a verified `compatible_exports` entry matching the record's `processing_version`, `window`, `units`, `feature_processing`, and required `acquisition_settings`. The processing profile should cover coefficient, reducers, resampling, smoothing, feature definitions, and missing data handling. Simulated scores use demo-only review bounds of 0.25 and 0.75.
 ## HTTP endpoints
 
 | Endpoint | Request and response |
@@ -96,6 +97,8 @@ For visit-eligible cases with a compatible DSR model score `s`, use the score-am
 
 Keep eligible cases with a score and missing acreage after the weighted cases, ordered by descending `u`, then claim ID. If a separately documented manual reason makes an unscored case visit-eligible, append it by claim ID with its manual reason. Cases needing a boundary correction or a records request remain outside the suggested visit allocation. Overrides remain available to the officer. The backend owns ranks and sends `rank_reason`, plus nullable `claimed_acres` and nullable `visit_priority` for display. The UI displays these fields without recalculating the order.
 
+An observation-quality-approved export can carry a manual visit recommendation via both `manual_visit_reason` and `field_question`. The reason and question must describe what the visit can resolve.
+
 Example queue response. The text is a simulated scenario with a DSR score of 0.55 and 2.5 claimed acres.
 
 ```json
@@ -117,6 +120,10 @@ Example queue response. The text is a simulated scenario with a DSR score of 0.5
   }]
 }
 ```
+
+### Queue replay
+
+The default companion files are `demo/replay-claims.geojson`, `demo/replay-evidence.json` (versioned simulated evidence records), and `demo/replay-outcomes.json` (`{"source_kind":"simulated","outcomes":{"claim_id":"resolved"}}`). Outcomes can be `resolved`, `corrected`, or `unresolved`. The runner freezes all three selections before loading outcomes. The score-only baseline sorts descending by score ambiguity and puts unscored visits last, with claim ID ties throughout. Seeded random samples without replacement from the same visit-eligible claim IDs. The report exposes `candidate_pool_count`, `budget`, `seed`, `outcome_source`, and `methods`. Each method contains selected IDs, counts, and the denominator.
 
 ## Integration acceptance
 

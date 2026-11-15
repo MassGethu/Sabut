@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 import json
 import logging
+import math
 from pathlib import Path
 
 from .geometry import finite_number
@@ -17,9 +18,15 @@ def read_artifact(path: Path):
     def reject_constant(value):
         raise ValueError(f"Unexpected nonfinite JSON constant: {value}")
 
+    def parse_float(value):
+        number = float(value)
+        if not math.isfinite(number):
+            reject_constant(value)
+        return number
+
     try:
         with path.open(encoding="utf-8") as handle:
-            return json.load(handle, parse_constant=reject_constant)
+            return json.load(handle, parse_constant=reject_constant, parse_float=parse_float)
     except FileNotFoundError:
         return None
     except (OSError, ValueError):
@@ -31,7 +38,7 @@ def cache_key(record):
     return tuple(record.get(field) for field in ("claim_id", "season", "geometry_hash"))
 
 
-def _catalog(artifact, source_kind):
+def index_records(artifact, source_kind):
     index = {}
     duplicates = set()
     if not isinstance(artifact, dict) or artifact.get("schema_version") != 1:
@@ -65,8 +72,8 @@ class EvidenceCatalog:
         if simulation is None:
             simulation = read_artifact(fixture_dir / "workflow-simulation.json")
         return cls(
-            _catalog(real, "sentinel1_real"),
-            _catalog(simulation, "simulated"),
+            index_records(real, "sentinel1_real"),
+            index_records(simulation, "simulated"),
             read_artifact(reports_dir / "model-manifest.json"),
         )
 
@@ -104,7 +111,8 @@ def _observation_reason(row, start, end, settings):
     if not finite_number(coverage) or not settings.min_valid_fraction <= coverage <= 1:
         return acquired, f"Valid plot coverage is below {settings.min_valid_fraction:.0%} or unavailable."
     if row.get("usable") is not True:
-        return acquired, row.get("reason") or "The source marked this acquisition unusable."
+        reason = row.get("reason")
+        return acquired, reason if isinstance(reason, str) and reason else "The source marked this acquisition unusable."
     return acquired, None
 
 
@@ -121,7 +129,8 @@ def assess_observations(record, settings):
         "failed_criterion": None,
     }
     result["quality_gate"] = gate
-    flags = record.get("quality_flags") or []
+    flags = record.get("quality_flags")
+    flags = flags if isinstance(flags, list) else []
     boundary_codes = {"invalid_boundary", "boundary_unusable", "plot_too_small", "boundary_too_small"}
     codes = [flag.get("code") if isinstance(flag, dict) else flag for flag in flags]
     boundary_failed = record.get("boundary_usable") is False or any(
@@ -130,6 +139,8 @@ def assess_observations(record, settings):
     failure = None
     if boundary_failed:
         failure = _failed("boundary_quality", "The cached extraction flags this plot boundary as unsuitable. Supply a corrected plot boundary.", "request_boundary_correction")
+    rows = record.get("observations")
+    rows = rows if isinstance(rows, list) else []
     try:
         window = record["window"]
         start, end = parse_date(window["start"]), parse_date(window["end"])
@@ -139,13 +150,13 @@ def assess_observations(record, settings):
         failure = failure or _failed("invalid_observation_window", "The cached evidence has no valid sowing window. Request dated sowing records or a corrected extraction.")
         result["observations"] = [
             dict(row, usable=False, reason="No valid evidence window for this acquisition.")
-            for row in record.get("observations", []) if isinstance(row, dict)
+            for row in rows if isinstance(row, dict)
         ]
         gate["failed_criterion"] = failure["criterion"]
         return result, failure
 
     usable_dates = set()
-    for row in record.get("observations") or []:
+    for row in rows:
         if not isinstance(row, dict):
             continue
         acquired, reason = _observation_reason(row, start, end, settings)

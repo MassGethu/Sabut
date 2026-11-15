@@ -7,7 +7,6 @@ from .evidence import QualitySettings, assess_observations
 from .geometry import finite_number
 
 
-ACTION_VALUES = ("desk_review", "request_field_visit", "request_boundary_correction", "request_records")
 VISIT = "request_field_visit"
 FIELD_QUESTION = (
     "Was rice seeded directly into this plot, or were seedlings transplanted? "
@@ -61,6 +60,23 @@ def _thresholds(manifest):
     return None
 
 
+def _processing_verified(record, manifest):
+    profiles = manifest.get("compatible_exports")
+    acquisition = record.get("acquisition_settings")
+    if not isinstance(profiles, list) or not isinstance(acquisition, dict):
+        return False
+    fields = ("processing_version", "window", "units", "feature_processing")
+    if any(not record.get(field) for field in fields):
+        return False
+    for profile in profiles:
+        if not isinstance(profile, dict) or any(profile.get(field) != record[field] for field in fields):
+            continue
+        expected = profile.get("acquisition_settings")
+        if isinstance(expected, dict) and expected and all(acquisition.get(key) == value for key, value in expected.items()):
+            return True
+    return False
+
+
 def _checked_model(record, manifest, failure):
     source = record.get("model")
     if not isinstance(source, dict):
@@ -88,12 +104,13 @@ def _checked_model(record, manifest, failure):
         and thresholds
         and isinstance(version, str) and version and version == manifest.get("model_version")
         and isinstance(schema, list) and schema and schema == manifest.get("feature_schema")
+        and _processing_verified(record, manifest)
     ):
         model["dsr_score"] = score
         return model, thresholds
 
     model.update(
-        compatibility_reason="The export's model provenance, ordered feature schema or validation thresholds could not be verified against the local manifest.",
+        compatibility_reason="The export's processing profile, model version, ordered feature schema or validation thresholds could not be verified against the local manifest.",
         compatible=False,
     )
     return model, None
@@ -157,7 +174,7 @@ def decide(claim, catalog, settings):
     return Decision(item, evidence, model, additional_real)
 
 
-def _ambiguity(score):
+def score_ambiguity(score):
     return Decimal(1) - 2 * abs(Decimal(str(score)) - Decimal("0.5"))
 
 
@@ -176,7 +193,7 @@ def rank_visits(decisions, budget, settings):
         if decision.score is None:
             eligible.append((2, Decimal(0), item["claim_id"], decision, None, item["reason"]))
             continue
-        uncertainty = _ambiguity(decision.score)
+        uncertainty = score_ambiguity(decision.score)
         acres = item["claimed_acres"]
         if acres is None:
             reason = "Rank uses score ambiguity. The application has no stated acreage."

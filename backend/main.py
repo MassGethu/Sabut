@@ -2,7 +2,6 @@
 
 from contextlib import asynccontextmanager
 import json
-import logging
 import os
 from pathlib import Path
 from typing import Annotated, Any, Literal
@@ -19,7 +18,6 @@ from .policy import PolicySettings, build_queue
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURES = ROOT / "backend" / "fixtures"
-LOGGER = logging.getLogger(__name__)
 Budget = Annotated[int, Query(ge=0)]
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
