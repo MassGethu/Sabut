@@ -310,7 +310,7 @@ export default function App() {
                     setCompareIds(["A", "B"]);
                     showComparison(event.currentTarget);
                   }}>
-                    Compare A · B
+                    Compare neighbours
                   </button>
                 ) : null
               }
