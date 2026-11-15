@@ -1,0 +1,353 @@
+{
+  "schema_version": 1,
+  "source_kind": "simulated",
+  "provenance": "SIMULATED workflow evidence for the featured A/B/C decision scenario. Observation values, scene IDs (SIM-*) and model scores are fictional. Geometry hashes match demo/claims.geojson so the real extraction in demo/evidence.json can be shown alongside.",
+  "expected_outcomes": {
+    "A": "ready_for_desk_review (simulated score 0.91 supports claimed DSR)",
+    "B": "field_check_recommended (simulated score 0.55 is ambiguous) with a concrete field question",
+    "C": "insufficient_evidence with request_boundary_correction (plot too small for 10 m radar)"
+  },
+  "records": [
+    {
+      "claim_id": "A",
+      "season": "Kharif 2024",
+      "geometry_hash": "4f570ce805854c460bf8ea99d6f0e98d81cb67d203a9d8fe88ddc76d948d70d8",
+      "source_kind": "simulated",
+      "window": {
+        "start": "2024-06-01",
+        "end": "2024-09-05"
+      },
+      "processing_version": "simulation-v1",
+      "units": "dB",
+      "acquisition_settings": {
+        "provider": "workflow simulation",
+        "note": "Simulated values; not satellite data."
+      },
+      "observations": [
+        {
+          "acquired_at": "2024-06-04T12:56:00Z",
+          "scene_id": "SIM-A-1",
+          "vv": -12.27,
+          "vh": -19.29,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-16T12:56:00Z",
+          "scene_id": "SIM-A-2",
+          "vv": -11.86,
+          "vh": -19.29,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-28T12:56:00Z",
+          "scene_id": "SIM-A-3",
+          "vv": -11.21,
+          "vh": -18.55,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-10T12:56:00Z",
+          "scene_id": "SIM-A-4",
+          "vv": -10.76,
+          "vh": -17.39,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-22T12:56:00Z",
+          "scene_id": "SIM-A-5",
+          "vv": -10.39,
+          "vh": -17.02,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-03T12:56:00Z",
+          "scene_id": "SIM-A-6",
+          "vv": -9.12,
+          "vh": -16.6,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-15T12:56:00Z",
+          "scene_id": "SIM-A-7",
+          "vv": -9.02,
+          "vh": -16.25,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-27T12:56:00Z",
+          "scene_id": "SIM-A-8",
+          "vv": -8.73,
+          "vh": -15.17,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        }
+      ],
+      "usable_count": 8,
+      "gaps": [
+        {
+          "start": "2024-06-01",
+          "end": "2024-06-04",
+          "days": 3,
+          "reason": "3 days from the window start to the first usable acquisition."
+        },
+        {
+          "start": "2024-08-27",
+          "end": "2024-09-05",
+          "days": 9,
+          "reason": "9 days from the last usable acquisition to the window end."
+        }
+      ],
+      "quality_flags": [],
+      "model": {
+        "source_kind": "simulated",
+        "model_version": "simulation-v1",
+        "feature_schema": [],
+        "compatible": true,
+        "compatibility_reason": "Fictional score for the workflow demonstration.",
+        "dsr_score": 0.91
+      }
+    },
+    {
+      "claim_id": "B",
+      "season": "Kharif 2024",
+      "geometry_hash": "e31ae03e6e21d645b1f7b43cc175b39152c0af22ff8d25ab76f5523ae08b727c",
+      "source_kind": "simulated",
+      "window": {
+        "start": "2024-06-01",
+        "end": "2024-09-05"
+      },
+      "processing_version": "simulation-v1",
+      "units": "dB",
+      "acquisition_settings": {
+        "provider": "workflow simulation",
+        "note": "Simulated values; not satellite data."
+      },
+      "observations": [
+        {
+          "acquired_at": "2024-06-04T12:56:00Z",
+          "scene_id": "SIM-B-1",
+          "vv": -11.51,
+          "vh": -19.07,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-16T12:56:00Z",
+          "scene_id": "SIM-B-2",
+          "vv": -12.79,
+          "vh": -19.73,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-28T12:56:00Z",
+          "scene_id": "SIM-B-3",
+          "vv": -12.47,
+          "vh": -19.93,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-10T12:56:00Z",
+          "scene_id": "SIM-B-4",
+          "vv": -10.88,
+          "vh": -17.36,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-22T12:56:00Z",
+          "scene_id": "SIM-B-5",
+          "vv": -9.96,
+          "vh": -16.84,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-03T12:56:00Z",
+          "scene_id": "SIM-B-6",
+          "vv": -8.31,
+          "vh": -15.76,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-15T12:56:00Z",
+          "scene_id": "SIM-B-7",
+          "vv": -8.99,
+          "vh": -15.58,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-27T12:56:00Z",
+          "scene_id": "SIM-B-8",
+          "vv": -7.76,
+          "vh": -14.77,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        }
+      ],
+      "usable_count": 8,
+      "gaps": [
+        {
+          "start": "2024-06-01",
+          "end": "2024-06-04",
+          "days": 3,
+          "reason": "3 days from the window start to the first usable acquisition."
+        },
+        {
+          "start": "2024-08-27",
+          "end": "2024-09-05",
+          "days": 9,
+          "reason": "9 days from the last usable acquisition to the window end."
+        }
+      ],
+      "quality_flags": [],
+      "model": {
+        "source_kind": "simulated",
+        "model_version": "simulation-v1",
+        "feature_schema": [],
+        "compatible": true,
+        "compatibility_reason": "Fictional score for the workflow demonstration.",
+        "dsr_score": 0.55
+      },
+      "field_question": "Was B sown by direct seeding into dry or moist soil, or were nursery seedlings transplanted into a puddled field? Look for nursery-bed remnants, puddling marks and regular transplant rows."
+    },
+    {
+      "claim_id": "C",
+      "season": "Kharif 2024",
+      "geometry_hash": "8654d6faff3454a181c2b63cbcaba8e2dd07542f2cee1d5fd4fedb1be01a2453",
+      "source_kind": "simulated",
+      "window": {
+        "start": "2024-06-01",
+        "end": "2024-09-05"
+      },
+      "processing_version": "simulation-v1",
+      "units": "dB",
+      "acquisition_settings": {
+        "provider": "workflow simulation",
+        "note": "Simulated values; not satellite data."
+      },
+      "observations": [
+        {
+          "acquired_at": "2024-06-04T12:56:00Z",
+          "scene_id": "SIM-C-1",
+          "vv": -12.52,
+          "vh": -19.3,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-16T12:56:00Z",
+          "scene_id": "SIM-C-2",
+          "vv": -11.97,
+          "vh": -18.69,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-28T12:56:00Z",
+          "scene_id": "SIM-C-3",
+          "vv": -11.24,
+          "vh": -18.52,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-10T12:56:00Z",
+          "scene_id": "SIM-C-4",
+          "vv": -10.56,
+          "vh": -17.81,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-22T12:56:00Z",
+          "scene_id": "SIM-C-5",
+          "vv": -10.13,
+          "vh": -17.13,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-03T12:56:00Z",
+          "scene_id": "SIM-C-6",
+          "vv": -9.8,
+          "vh": -16.28,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-15T12:56:00Z",
+          "scene_id": "SIM-C-7",
+          "vv": -9.25,
+          "vh": -15.88,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-27T12:56:00Z",
+          "scene_id": "SIM-C-8",
+          "vv": -8.57,
+          "vh": -15.02,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        }
+      ],
+      "usable_count": 8,
+      "gaps": [
+        {
+          "start": "2024-06-01",
+          "end": "2024-06-04",
+          "days": 3,
+          "reason": "3 days from the window start to the first usable acquisition."
+        },
+        {
+          "start": "2024-08-27",
+          "end": "2024-09-05",
+          "days": 9,
+          "reason": "9 days from the last usable acquisition to the window end."
+        }
+      ],
+      "quality_flags": [
+        {
+          "code": "plot_too_small",
+          "detail": "The 0.4-acre boundary covers about 16 Sentinel-1 pixels, below the 20-pixel minimum. Supply a corrected or merged plot boundary."
+        }
+      ],
+      "model": null
+    }
+  ]
+}

@@ -1,0 +1,672 @@
+{
+  "schema_version": 1,
+  "source_kind": "sentinel1_real",
+  "generated_at": "2026-11-15T12:02:11Z",
+  "generator": "scripts/rebuild_demo_evidence.py",
+  "processing_version": "sabut-s1rtc-plotmean-v1",
+  "provenance": "Real Sentinel-1A RTC observations for fictional claims on georeferenced Karnal, Haryana plots. Claims, farmer names, acreage and harvest date are fictional.",
+  "catalog": {
+    "provider": "Microsoft Planetary Computer",
+    "stac_api": "https://planetarycomputer.microsoft.com/api/stac/v1",
+    "collection": "sentinel-1-rtc",
+    "query_bbox": [
+      76.926097,
+      29.65503,
+      76.931333,
+      29.657993
+    ],
+    "window": {
+      "start": "2024-06-01",
+      "end": "2024-09-05"
+    },
+    "total_items": 9,
+    "items_by_orbit": {
+      "ascending/27/SENTINEL-1A": 7,
+      "descending/136/SENTINEL-1A": 2
+    },
+    "series_relative_orbit": 27,
+    "series_items": 7,
+    "expected_repeat_dates": [
+      "2024-06-04",
+      "2024-06-16",
+      "2024-06-28",
+      "2024-07-10",
+      "2024-07-22",
+      "2024-08-03",
+      "2024-08-15",
+      "2024-08-27"
+    ],
+    "missing_expected_dates": [
+      "2024-06-28"
+    ],
+    "excluded_items": [
+      {
+        "stac_item_id": "S1A_IW_GRDH_1SDV_20240718T005207_20240718T005232_054808_06AC9D_rtc",
+        "scene_id": "S1A_IW_GRDH_1SDV_20240718T005207_20240718T005232_054808_06AC9D",
+        "acquired_at": "2024-07-18T00:52:19Z",
+        "orbit_state": "descending",
+        "relative_orbit": 136,
+        "platform": "SENTINEL-1A",
+        "polarizations": [
+          "VV",
+          "VH"
+        ],
+        "reason": "Descending pass excluded; ascending only."
+      },
+      {
+        "stac_item_id": "S1A_IW_GRDH_1SDV_20240823T005207_20240823T005232_055333_06BF4D_rtc",
+        "scene_id": "S1A_IW_GRDH_1SDV_20240823T005207_20240823T005232_055333_06BF4D",
+        "acquired_at": "2024-08-23T00:52:19Z",
+        "orbit_state": "descending",
+        "relative_orbit": 136,
+        "platform": "SENTINEL-1A",
+        "polarizations": [
+          "VV",
+          "VH"
+        ],
+        "reason": "Descending pass excluded; ascending only."
+      }
+    ]
+  },
+  "gate_settings": {
+    "min_usable_dates": 5,
+    "min_valid_fraction": 0.7,
+    "max_gap_days": 24,
+    "min_plot_pixels": 20
+  },
+  "records": [
+    {
+      "claim_id": "A",
+      "season": "Kharif 2024",
+      "geometry_hash": "4f570ce805854c460bf8ea99d6f0e98d81cb67d203a9d8fe88ddc76d948d70d8",
+      "source_kind": "sentinel1_real",
+      "window": {
+        "start": "2024-06-01",
+        "end": "2024-09-05"
+      },
+      "processing_version": "sabut-s1rtc-plotmean-v1",
+      "units": "dB",
+      "feature_processing": "plot_series_only",
+      "acquisition_settings": {
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-1-rtc",
+        "product": "Sentinel-1 IW GRD, radiometrically terrain corrected",
+        "coefficient": "gamma0_rtc",
+        "polarizations": [
+          "VV",
+          "VH"
+        ],
+        "orbit_state": "ascending",
+        "relative_orbit": 27,
+        "platform": "SENTINEL-1A",
+        "pixel_spacing_m": 10,
+        "crs": "EPSG:32643",
+        "plot_reducer": "arithmetic mean of linear-power gamma0 over pixels whose centres fall inside the plot and are valid in both VV and VH; then 10*log10",
+        "valid_pixel_rule": "finite, > 0 and not nodata (-32768) in both VV and VH",
+        "speckle_filter": "none",
+        "temporal_resampling": "none (actual acquisition dates only)",
+        "min_plot_pixels": 20,
+        "signing": "anonymous SAS, not stored"
+      },
+      "observations": [
+        {
+          "acquired_at": "2024-06-04T12:56:02Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240604T125550_20240604T125615_054174_06969B",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240604T125550_20240604T125615_054174_06969B_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -8.597,
+          "vh": -14.315,
+          "vv_linear": 0.13814574968069793,
+          "vh_linear": 0.037022524047642946,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-16T12:56:02Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240616T125549_20240616T125614_054349_069CA9",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240616T125549_20240616T125614_054349_069CA9_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -7.81,
+          "vh": -13.894,
+          "vv_linear": 0.1655895872414112,
+          "vh_linear": 0.040791349685750905,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-10T12:56:01Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240710T125548_20240710T125613_054699_06A8D5",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240710T125548_20240710T125613_054699_06A8D5_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -9.54,
+          "vh": -15.527,
+          "vv_linear": 0.1111649740114808,
+          "vh_linear": 0.02800655795261264,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-22T12:56:00Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240722T125548_20240722T125613_054874_06AEE3",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240722T125548_20240722T125613_054874_06AEE3_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -9.57,
+          "vh": -15.194,
+          "vv_linear": 0.11041191820055246,
+          "vh_linear": 0.030244341660290955,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-03T12:56:00Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240803T125548_20240803T125613_055049_06B4EE",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240803T125548_20240803T125613_055049_06B4EE_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -9.678,
+          "vh": -14.788,
+          "vv_linear": 0.10768528275191784,
+          "vh_linear": 0.03320320101454854,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-15T12:56:00Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240815T125548_20240815T125613_055224_06BB4D",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240815T125548_20240815T125613_055224_06BB4D_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -9.218,
+          "vh": -14.436,
+          "vv_linear": 0.11974255461245775,
+          "vh_linear": 0.03600914094597101,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-27T12:56:01Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240827T125548_20240827T125613_055399_06C1CC",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240827T125548_20240827T125613_055399_06C1CC_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -9.439,
+          "vh": -14.388,
+          "vv_linear": 0.11378710001707076,
+          "vh_linear": 0.03640515851788223,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        }
+      ],
+      "usable_count": 7,
+      "gaps": [
+        {
+          "start": "2024-06-01",
+          "end": "2024-06-04",
+          "days": 3,
+          "reason": "3 days from the window start to the first usable acquisition."
+        },
+        {
+          "start": "2024-06-16",
+          "end": "2024-07-10",
+          "days": 24,
+          "reason": "24 days between usable acquisitions (nominal repeat is 12 days)."
+        },
+        {
+          "start": "2024-08-27",
+          "end": "2024-09-05",
+          "days": 9,
+          "reason": "9 days from the last usable acquisition to the window end."
+        }
+      ],
+      "quality_flags": [
+        {
+          "code": "catalog_missing_repeat_dates",
+          "detail": "Expected relative-orbit 27 acquisitions not in the catalog: 2024-06-28."
+        }
+      ],
+      "boundary_usable": true,
+      "plot_pixels": 100,
+      "quality_gate": {
+        "min_usable_dates": 5,
+        "min_valid_fraction": 0.7,
+        "max_gap_days": 24,
+        "min_plot_pixels": 20,
+        "longest_gap_days": 24,
+        "passes": true,
+        "failed_criterion": null
+      },
+      "model": {
+        "source_kind": "sentinel1_real",
+        "model_version": null,
+        "feature_schema": [],
+        "compatible": false,
+        "compatibility_reason": "Feature parity with the Ricemapper training data is unverified. The model was trained on SNAP gamma0 with multi-temporal Refined Lee speckle filtering and exactextract plot means resampled to a 4-day grid and spline-smoothed; this export is Planetary Computer RTC gamma0 without speckle filtering, 7 single-orbit dates, and no handcrafted spline features were computed",
+        "dsr_score": null
+      },
+      "retrospective": {
+        "reported_harvest_date": "2024-10-08",
+        "reported_harvest_date_source": "applicant_reported_fictional",
+        "observations_before_reported_harvest": 7,
+        "last_observation_before_harvest": "2024-08-27",
+        "note": "The harvest date is fictional and applicant-reported. Acquisition dates and scene IDs are real."
+      }
+    },
+    {
+      "claim_id": "B",
+      "season": "Kharif 2024",
+      "geometry_hash": "e31ae03e6e21d645b1f7b43cc175b39152c0af22ff8d25ab76f5523ae08b727c",
+      "source_kind": "sentinel1_real",
+      "window": {
+        "start": "2024-06-01",
+        "end": "2024-09-05"
+      },
+      "processing_version": "sabut-s1rtc-plotmean-v1",
+      "units": "dB",
+      "feature_processing": "plot_series_only",
+      "acquisition_settings": {
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-1-rtc",
+        "product": "Sentinel-1 IW GRD, radiometrically terrain corrected",
+        "coefficient": "gamma0_rtc",
+        "polarizations": [
+          "VV",
+          "VH"
+        ],
+        "orbit_state": "ascending",
+        "relative_orbit": 27,
+        "platform": "SENTINEL-1A",
+        "pixel_spacing_m": 10,
+        "crs": "EPSG:32643",
+        "plot_reducer": "arithmetic mean of linear-power gamma0 over pixels whose centres fall inside the plot and are valid in both VV and VH; then 10*log10",
+        "valid_pixel_rule": "finite, > 0 and not nodata (-32768) in both VV and VH",
+        "speckle_filter": "none",
+        "temporal_resampling": "none (actual acquisition dates only)",
+        "min_plot_pixels": 20,
+        "signing": "anonymous SAS, not stored"
+      },
+      "observations": [
+        {
+          "acquired_at": "2024-06-04T12:56:02Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240604T125550_20240604T125615_054174_06969B",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240604T125550_20240604T125615_054174_06969B_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -6.946,
+          "vh": -13.039,
+          "vv_linear": 0.20200282089412214,
+          "vh_linear": 0.04966505947522819,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-16T12:56:02Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240616T125549_20240616T125614_054349_069CA9",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240616T125549_20240616T125614_054349_069CA9_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -8.312,
+          "vh": -14.325,
+          "vv_linear": 0.147506234459579,
+          "vh_linear": 0.03694199612597004,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-10T12:56:01Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240710T125548_20240710T125613_054699_06A8D5",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240710T125548_20240710T125613_054699_06A8D5_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -7.471,
+          "vh": -15.091,
+          "vv_linear": 0.17900755420327186,
+          "vh_linear": 0.03096540522761643,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-22T12:56:00Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240722T125548_20240722T125613_054874_06AEE3",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240722T125548_20240722T125613_054874_06AEE3_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -8.619,
+          "vh": -14.586,
+          "vv_linear": 0.13743721216917038,
+          "vh_linear": 0.034783527906984094,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-03T12:56:00Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240803T125548_20240803T125613_055049_06B4EE",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240803T125548_20240803T125613_055049_06B4EE_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -9.313,
+          "vh": -14.264,
+          "vv_linear": 0.11713627275079488,
+          "vh_linear": 0.037466589030809704,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-15T12:56:00Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240815T125548_20240815T125613_055224_06BB4D",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240815T125548_20240815T125613_055224_06BB4D_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -8.996,
+          "vh": -14.583,
+          "vv_linear": 0.12601000607013702,
+          "vh_linear": 0.03480929100885987,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-27T12:56:01Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240827T125548_20240827T125613_055399_06C1CC",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240827T125548_20240827T125613_055399_06C1CC_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -9.603,
+          "vh": -14.305,
+          "vv_linear": 0.10956233706325293,
+          "vh_linear": 0.03711147387512028,
+          "valid_fraction": 1.0,
+          "valid_pixels": 100,
+          "plot_pixels": 100,
+          "usable": true,
+          "reason": null
+        }
+      ],
+      "usable_count": 7,
+      "gaps": [
+        {
+          "start": "2024-06-01",
+          "end": "2024-06-04",
+          "days": 3,
+          "reason": "3 days from the window start to the first usable acquisition."
+        },
+        {
+          "start": "2024-06-16",
+          "end": "2024-07-10",
+          "days": 24,
+          "reason": "24 days between usable acquisitions (nominal repeat is 12 days)."
+        },
+        {
+          "start": "2024-08-27",
+          "end": "2024-09-05",
+          "days": 9,
+          "reason": "9 days from the last usable acquisition to the window end."
+        }
+      ],
+      "quality_flags": [
+        {
+          "code": "catalog_missing_repeat_dates",
+          "detail": "Expected relative-orbit 27 acquisitions not in the catalog: 2024-06-28."
+        }
+      ],
+      "boundary_usable": true,
+      "plot_pixels": 100,
+      "quality_gate": {
+        "min_usable_dates": 5,
+        "min_valid_fraction": 0.7,
+        "max_gap_days": 24,
+        "min_plot_pixels": 20,
+        "longest_gap_days": 24,
+        "passes": true,
+        "failed_criterion": null
+      },
+      "model": {
+        "source_kind": "sentinel1_real",
+        "model_version": null,
+        "feature_schema": [],
+        "compatible": false,
+        "compatibility_reason": "Feature parity with the Ricemapper training data is unverified. The model was trained on SNAP gamma0 with multi-temporal Refined Lee speckle filtering and exactextract plot means resampled to a 4-day grid and spline-smoothed; this export is Planetary Computer RTC gamma0 without speckle filtering, 7 single-orbit dates, and no handcrafted spline features were computed",
+        "dsr_score": null
+      }
+    },
+    {
+      "claim_id": "C",
+      "season": "Kharif 2024",
+      "geometry_hash": "8654d6faff3454a181c2b63cbcaba8e2dd07542f2cee1d5fd4fedb1be01a2453",
+      "source_kind": "sentinel1_real",
+      "window": {
+        "start": "2024-06-01",
+        "end": "2024-09-05"
+      },
+      "processing_version": "sabut-s1rtc-plotmean-v1",
+      "units": "dB",
+      "feature_processing": "plot_series_only",
+      "acquisition_settings": {
+        "provider": "Microsoft Planetary Computer",
+        "collection": "sentinel-1-rtc",
+        "product": "Sentinel-1 IW GRD, radiometrically terrain corrected",
+        "coefficient": "gamma0_rtc",
+        "polarizations": [
+          "VV",
+          "VH"
+        ],
+        "orbit_state": "ascending",
+        "relative_orbit": 27,
+        "platform": "SENTINEL-1A",
+        "pixel_spacing_m": 10,
+        "crs": "EPSG:32643",
+        "plot_reducer": "arithmetic mean of linear-power gamma0 over pixels whose centres fall inside the plot and are valid in both VV and VH; then 10*log10",
+        "valid_pixel_rule": "finite, > 0 and not nodata (-32768) in both VV and VH",
+        "speckle_filter": "none",
+        "temporal_resampling": "none (actual acquisition dates only)",
+        "min_plot_pixels": 20,
+        "signing": "anonymous SAS, not stored"
+      },
+      "observations": [
+        {
+          "acquired_at": "2024-06-04T12:56:02Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240604T125550_20240604T125615_054174_06969B",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240604T125550_20240604T125615_054174_06969B_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -7.251,
+          "vh": -16.507,
+          "vv_linear": 0.18830295419320464,
+          "vh_linear": 0.022348809463437647,
+          "valid_fraction": 1.0,
+          "valid_pixels": 16,
+          "plot_pixels": 16,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-16T12:56:02Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240616T125549_20240616T125614_054349_069CA9",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240616T125549_20240616T125614_054349_069CA9_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -6.9,
+          "vh": -19.176,
+          "vv_linear": 0.20416350895538926,
+          "vh_linear": 0.012090215866919607,
+          "valid_fraction": 1.0,
+          "valid_pixels": 16,
+          "plot_pixels": 16,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-10T12:56:01Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240710T125548_20240710T125613_054699_06A8D5",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240710T125548_20240710T125613_054699_06A8D5_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -8.372,
+          "vh": -19.254,
+          "vv_linear": 0.1454890095628798,
+          "vh_linear": 0.011872836970724165,
+          "valid_fraction": 1.0,
+          "valid_pixels": 16,
+          "plot_pixels": 16,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-22T12:56:00Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240722T125548_20240722T125613_054874_06AEE3",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240722T125548_20240722T125613_054874_06AEE3_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -8.384,
+          "vh": -19.555,
+          "vv_linear": 0.14509114576503634,
+          "vh_linear": 0.011080177704570815,
+          "valid_fraction": 1.0,
+          "valid_pixels": 16,
+          "plot_pixels": 16,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-03T12:56:00Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240803T125548_20240803T125613_055049_06B4EE",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240803T125548_20240803T125613_055049_06B4EE_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -9.979,
+          "vh": -18.722,
+          "vv_linear": 0.1004896224476397,
+          "vh_linear": 0.01342143234796822,
+          "valid_fraction": 1.0,
+          "valid_pixels": 16,
+          "plot_pixels": 16,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-15T12:56:00Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240815T125548_20240815T125613_055224_06BB4D",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240815T125548_20240815T125613_055224_06BB4D_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -7.842,
+          "vh": -14.655,
+          "vv_linear": 0.16437845584005117,
+          "vh_linear": 0.03424016642384231,
+          "valid_fraction": 1.0,
+          "valid_pixels": 16,
+          "plot_pixels": 16,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-27T12:56:01Z",
+          "scene_id": "S1A_IW_GRDH_1SDV_20240827T125548_20240827T125613_055399_06C1CC",
+          "stac_item_id": "S1A_IW_GRDH_1SDV_20240827T125548_20240827T125613_055399_06C1CC_rtc",
+          "relative_orbit": 27,
+          "orbit_state": "ascending",
+          "vv": -10.454,
+          "vh": -14.735,
+          "vv_linear": 0.09006885904818773,
+          "vh_linear": 0.03361459786538035,
+          "valid_fraction": 1.0,
+          "valid_pixels": 16,
+          "plot_pixels": 16,
+          "usable": true,
+          "reason": null
+        }
+      ],
+      "usable_count": 7,
+      "gaps": [
+        {
+          "start": "2024-06-01",
+          "end": "2024-06-04",
+          "days": 3,
+          "reason": "3 days from the window start to the first usable acquisition."
+        },
+        {
+          "start": "2024-06-16",
+          "end": "2024-07-10",
+          "days": 24,
+          "reason": "24 days between usable acquisitions (nominal repeat is 12 days)."
+        },
+        {
+          "start": "2024-08-27",
+          "end": "2024-09-05",
+          "days": 9,
+          "reason": "9 days from the last usable acquisition to the window end."
+        }
+      ],
+      "quality_flags": [
+        {
+          "code": "plot_too_small",
+          "detail": "Only 16 10 m pixel centres fall inside the boundary; at least 20 are needed for a reliable plot mean. Supply a corrected or merged plot boundary."
+        },
+        {
+          "code": "catalog_missing_repeat_dates",
+          "detail": "Expected relative-orbit 27 acquisitions not in the catalog: 2024-06-28."
+        }
+      ],
+      "boundary_usable": false,
+      "plot_pixels": 16,
+      "quality_gate": {
+        "min_usable_dates": 5,
+        "min_valid_fraction": 0.7,
+        "max_gap_days": 24,
+        "min_plot_pixels": 20,
+        "longest_gap_days": 24,
+        "passes": false,
+        "failed_criterion": "boundary_quality"
+      },
+      "model": {
+        "source_kind": "sentinel1_real",
+        "model_version": null,
+        "feature_schema": [],
+        "compatible": false,
+        "compatibility_reason": "Feature parity with the Ricemapper training data is unverified. The model was trained on SNAP gamma0 with multi-temporal Refined Lee speckle filtering and exactextract plot means resampled to a 4-day grid and spline-smoothed; this export is Planetary Computer RTC gamma0 without speckle filtering, 7 single-orbit dates, and no handcrafted spline features were computed",
+        "dsr_score": null
+      }
+    }
+  ]
+}

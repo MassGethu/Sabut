@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "source_kind": "simulated",
+  "seed": 7,
+  "provenance": "SIMULATED inspection outcomes keyed by claim ID. Kept in this separate file so queue ranking never sees them.",
+  "definitions": {
+    "resolved": "The visit established the sowing method for a case the desk evidence could not settle (score in the review band or unscored), and it matched the claim.",
+    "corrected": "The visit found that the claimed sowing method was wrong, so the decision changed.",
+    "unresolved": "The visit could not establish the method (field already harvested or prepared, no access, boundary mismatch) or only re-confirmed what the desk evidence already supported."
+  },
+  "resolving_or_correcting": "A visit counts toward the replay metric when its outcome is resolved or corrected.",
+  "generation_assumption": "Latent true method drawn with P(DSR) = simulated score (0.5 when unscored); 15% of visits arrive after harvest and are unresolved regardless of score. Treating the score as a probability is an assumption, not demonstrated calibration, and it favours ambiguity-ordered policies by construction.",
+  "outcomes": {
+    "R01": "unresolved",
+    "R02": "resolved",
+    "R03": "unresolved",
+    "R04": "resolved",
+    "R05": "resolved",
+    "R06": "corrected",
+    "R07": "corrected",
+    "R08": "resolved",
+    "R09": "corrected",
+    "R10": "corrected",
+    "R11": "resolved",
+    "R12": "unresolved",
+    "R13": "unresolved",
+    "R14": "unresolved",
+    "R15": "unresolved",
+    "R16": "unresolved",
+    "R17": "unresolved",
+    "R18": "corrected",
+    "R19": "unresolved",
+    "R20": "resolved",
+    "R21": "corrected",
+    "R22": "resolved",
+    "R23": "resolved",
+    "R24": "corrected",
+    "R25": "unresolved"
+  },
+  "outcome_details": {
+    "R01": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": true,
+      "explanation": "Field already harvested or prepared at the visit (simulated)."
+    },
+    "R02": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth DSR confirmed an ambiguous or unscored case."
+    },
+    "R03": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": true,
+      "explanation": "Field already harvested or prepared at the visit (simulated)."
+    },
+    "R04": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR confirmed an ambiguous or unscored case."
+    },
+    "R05": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth DSR confirmed an ambiguous or unscored case."
+    },
+    "R06": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR differs from claimed DSR."
+    },
+    "R07": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR differs from claimed DSR."
+    },
+    "R08": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR confirmed an ambiguous or unscored case."
+    },
+    "R09": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR differs from claimed DSR."
+    },
+    "R10": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR differs from claimed DSR."
+    },
+    "R11": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth DSR confirmed an ambiguous or unscored case."
+    },
+    "R12": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": true,
+      "explanation": "Field already harvested or prepared at the visit (simulated)."
+    },
+    "R13": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": false,
+      "explanation": "Visit re-confirmed what the desk evidence already supported."
+    },
+    "R14": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": false,
+      "explanation": "Visit re-confirmed what the desk evidence already supported."
+    },
+    "R15": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": true,
+      "explanation": "Field already harvested or prepared at the visit (simulated)."
+    },
+    "R16": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": true,
+      "explanation": "Field already harvested or prepared at the visit (simulated)."
+    },
+    "R17": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": true,
+      "explanation": "Field already harvested or prepared at the visit (simulated)."
+    },
+    "R18": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR differs from claimed DSR."
+    },
+    "R19": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": false,
+      "explanation": "Visit re-confirmed what the desk evidence already supported."
+    },
+    "R20": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR confirmed an ambiguous or unscored case."
+    },
+    "R21": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR differs from claimed DSR."
+    },
+    "R22": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth DSR confirmed an ambiguous or unscored case."
+    },
+    "R23": {
+      "simulated_true_method": "DSR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth DSR confirmed an ambiguous or unscored case."
+    },
+    "R24": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": false,
+      "explanation": "Simulated ground truth PTR differs from claimed DSR."
+    },
+    "R25": {
+      "simulated_true_method": "PTR",
+      "harvested_before_visit": true,
+      "explanation": "Field already harvested or prepared at the visit (simulated)."
+    }
+  }
+}

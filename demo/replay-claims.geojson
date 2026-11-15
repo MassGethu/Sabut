@@ -1,0 +1,930 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.960902,
+              29.545243
+            ],
+            [
+              76.961934,
+              29.545228
+            ],
+            [
+              76.961951,
+              29.54613
+            ],
+            [
+              76.96092,
+              29.546145
+            ],
+            [
+              76.960902,
+              29.545243
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R01",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 3.0,
+        "farmer_name": "Replay farmer 1 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.963997,
+              29.545197
+            ],
+            [
+              76.965028,
+              29.545182
+            ],
+            [
+              76.965046,
+              29.546084
+            ],
+            [
+              76.964014,
+              29.546099
+            ],
+            [
+              76.963997,
+              29.545197
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R02",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 1.0,
+        "farmer_name": "Replay farmer 2 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.967092,
+              29.545152
+            ],
+            [
+              76.968123,
+              29.545136
+            ],
+            [
+              76.968141,
+              29.546038
+            ],
+            [
+              76.967109,
+              29.546054
+            ],
+            [
+              76.967092,
+              29.545152
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R03",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 5.0,
+        "farmer_name": "Replay farmer 3 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.970186,
+              29.545106
+            ],
+            [
+              76.971218,
+              29.545091
+            ],
+            [
+              76.971235,
+              29.545993
+            ],
+            [
+              76.970204,
+              29.546008
+            ],
+            [
+              76.970186,
+              29.545106
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R04",
+        "season": "Kharif 2024",
+        "claimed_method": "PTR",
+        "claimed_acres": 2.5,
+        "farmer_name": "Replay farmer 4 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.973281,
+              29.54506
+            ],
+            [
+              76.974312,
+              29.545045
+            ],
+            [
+              76.97433,
+              29.545947
+            ],
+            [
+              76.973298,
+              29.545962
+            ],
+            [
+              76.973281,
+              29.54506
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R05",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 6.5,
+        "farmer_name": "Replay farmer 5 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.960954,
+              29.547949
+            ],
+            [
+              76.961986,
+              29.547934
+            ],
+            [
+              76.962003,
+              29.548836
+            ],
+            [
+              76.960972,
+              29.548851
+            ],
+            [
+              76.960954,
+              29.547949
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R06",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 2.0,
+        "farmer_name": "Replay farmer 6 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.964049,
+              29.547903
+            ],
+            [
+              76.965081,
+              29.547888
+            ],
+            [
+              76.965098,
+              29.54879
+            ],
+            [
+              76.964067,
+              29.548805
+            ],
+            [
+              76.964049,
+              29.547903
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R07",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 2.0,
+        "farmer_name": "Replay farmer 7 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.967144,
+              29.547858
+            ],
+            [
+              76.968175,
+              29.547842
+            ],
+            [
+              76.968193,
+              29.548744
+            ],
+            [
+              76.967161,
+              29.54876
+            ],
+            [
+              76.967144,
+              29.547858
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R08",
+        "season": "Kharif 2024",
+        "claimed_method": "PTR",
+        "claimed_acres": 2.0,
+        "farmer_name": "Replay farmer 8 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.970239,
+              29.547812
+            ],
+            [
+              76.97127,
+              29.547796
+            ],
+            [
+              76.971288,
+              29.548698
+            ],
+            [
+              76.970256,
+              29.548714
+            ],
+            [
+              76.970239,
+              29.547812
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R09",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 4.0,
+        "farmer_name": "Replay farmer 9 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.973333,
+              29.547766
+            ],
+            [
+              76.974365,
+              29.547751
+            ],
+            [
+              76.974382,
+              29.548653
+            ],
+            [
+              76.973351,
+              29.548668
+            ],
+            [
+              76.973333,
+              29.547766
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R10",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 1.5,
+        "farmer_name": "Replay farmer 10 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.961007,
+              29.550655
+            ],
+            [
+              76.962038,
+              29.55064
+            ],
+            [
+              76.962056,
+              29.551542
+            ],
+            [
+              76.961024,
+              29.551557
+            ],
+            [
+              76.961007,
+              29.550655
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R11",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 2.0,
+        "farmer_name": "Replay farmer 11 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.964102,
+              29.550609
+            ],
+            [
+              76.965133,
+              29.550594
+            ],
+            [
+              76.965151,
+              29.551496
+            ],
+            [
+              76.964119,
+              29.551511
+            ],
+            [
+              76.964102,
+              29.550609
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R12",
+        "season": "Kharif 2024",
+        "claimed_method": "PTR",
+        "claimed_acres": 2.0,
+        "farmer_name": "Replay farmer 12 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.967196,
+              29.550564
+            ],
+            [
+              76.968228,
+              29.550548
+            ],
+            [
+              76.968245,
+              29.55145
+            ],
+            [
+              76.967214,
+              29.551466
+            ],
+            [
+              76.967196,
+              29.550564
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R13",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 3.0,
+        "farmer_name": "Replay farmer 13 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.970291,
+              29.550518
+            ],
+            [
+              76.971323,
+              29.550502
+            ],
+            [
+              76.97134,
+              29.551404
+            ],
+            [
+              76.970309,
+              29.55142
+            ],
+            [
+              76.970291,
+              29.550518
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R14",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 2.5,
+        "farmer_name": "Replay farmer 14 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.973386,
+              29.550472
+            ],
+            [
+              76.974418,
+              29.550456
+            ],
+            [
+              76.974435,
+              29.551358
+            ],
+            [
+              76.973403,
+              29.551374
+            ],
+            [
+              76.973386,
+              29.550472
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R15",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 1.0,
+        "farmer_name": "Replay farmer 15 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.961059,
+              29.553361
+            ],
+            [
+              76.962091,
+              29.553346
+            ],
+            [
+              76.962108,
+              29.554248
+            ],
+            [
+              76.961076,
+              29.554263
+            ],
+            [
+              76.961059,
+              29.553361
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R16",
+        "season": "Kharif 2024",
+        "claimed_method": "PTR",
+        "claimed_acres": 4.0,
+        "farmer_name": "Replay farmer 16 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.964154,
+              29.553315
+            ],
+            [
+              76.965186,
+              29.5533
+            ],
+            [
+              76.965203,
+              29.554202
+            ],
+            [
+              76.964171,
+              29.554217
+            ],
+            [
+              76.964154,
+              29.553315
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R17",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 5.0,
+        "farmer_name": "Replay farmer 17 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.967249,
+              29.55327
+            ],
+            [
+              76.96828,
+              29.553254
+            ],
+            [
+              76.968298,
+              29.554156
+            ],
+            [
+              76.967266,
+              29.554172
+            ],
+            [
+              76.967249,
+              29.55327
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R18",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 2.0,
+        "farmer_name": "Replay farmer 18 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.970344,
+              29.553224
+            ],
+            [
+              76.971375,
+              29.553208
+            ],
+            [
+              76.971393,
+              29.55411
+            ],
+            [
+              76.970361,
+              29.554126
+            ],
+            [
+              76.970344,
+              29.553224
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R19",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 1.5,
+        "farmer_name": "Replay farmer 19 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.973439,
+              29.553178
+            ],
+            [
+              76.97447,
+              29.553162
+            ],
+            [
+              76.974488,
+              29.554064
+            ],
+            [
+              76.973456,
+              29.55408
+            ],
+            [
+              76.973439,
+              29.553178
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R20",
+        "season": "Kharif 2024",
+        "claimed_method": "PTR",
+        "claimed_acres": 0.8,
+        "farmer_name": "Replay farmer 20 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.961164,
+              29.558773
+            ],
+            [
+              76.962195,
+              29.558758
+            ],
+            [
+              76.962213,
+              29.55966
+            ],
+            [
+              76.961181,
+              29.559675
+            ],
+            [
+              76.961164,
+              29.558773
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R21",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 3.5,
+        "farmer_name": "Replay farmer R21 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.964259,
+              29.558727
+            ],
+            [
+              76.96529,
+              29.558712
+            ],
+            [
+              76.965308,
+              29.559614
+            ],
+            [
+              76.964276,
+              29.559629
+            ],
+            [
+              76.964259,
+              29.558727
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R22",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 1.2,
+        "farmer_name": "Replay farmer R22 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.967354,
+              29.558682
+            ],
+            [
+              76.968385,
+              29.558666
+            ],
+            [
+              76.968403,
+              29.559568
+            ],
+            [
+              76.967371,
+              29.559584
+            ],
+            [
+              76.967354,
+              29.558682
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R23",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 2.0,
+        "farmer_name": "Replay farmer R23 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.970449,
+              29.558636
+            ],
+            [
+              76.97148,
+              29.55862
+            ],
+            [
+              76.971498,
+              29.559522
+            ],
+            [
+              76.970466,
+              29.559538
+            ],
+            [
+              76.970449,
+              29.558636
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R24",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 6.0,
+        "farmer_name": "Replay farmer R24 (fictional)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.973544,
+              29.55859
+            ],
+            [
+              76.974575,
+              29.558574
+            ],
+            [
+              76.974593,
+              29.559476
+            ],
+            [
+              76.973561,
+              29.559492
+            ],
+            [
+              76.973544,
+              29.55859
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "claim_id": "R25",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 1.0,
+        "farmer_name": "Replay farmer R25 (fictional)"
+      }
+    }
+  ]
+}
