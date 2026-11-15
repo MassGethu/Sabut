@@ -26,6 +26,16 @@ The command moves the default database into `.sabut/backups/`. The next start op
 
 For API work without the frontend, run `make install-api PYTHON=python3.14` and then `.venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1`. The API description is in [CONTRACT.md](CONTRACT.md), with [example payloads](examples/api).
 
+## Verified offline workflow
+
+The presenting build was installed from an anonymous clean clone on macOS with Python 3.14 and Node.js 26. Chrome and the app then ran with external networking blocked and localhost available.
+
+- GeoJSON upload, neighboring A/B comparison, C's boundary correction, and B entering the visit budget when it changed from zero to one.
+- A's desk review, B's visit request and override, the Hindi and Punjabi farmer card, and the simulated correction receipt in Meena's history.
+- Restart persistence, reset refusal during server use, archival of the stopped database, and startup with an empty workspace.
+- An uncached claim without acreage, the incompatible real archive with pre-harvest scene IDs, and the benchmark and replay values in the app.
+- Offline replay regeneration matched the checked-in report byte for byte.
+
 ## Judge walkthrough
 
 1. Upload `demo/claims.geojson` or use **Load demo batch**. Select **Compare A · B**. Both fictional claims say DSR. A's simulated score supports desk review. For B, the visit should establish whether the farmer sowed seed directly or transplanted seedlings. C covers about 16 radar pixels and needs a boundary correction.
