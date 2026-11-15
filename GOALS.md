@@ -8,7 +8,7 @@ Copy the relevant `/goal` line into each session, then send its implementation b
 
 | Elapsed | You · Codex and Claude Code | Teammate · Claude Code |
 |---|---|---|
-| 0:00–0:20 | Publish the contract and branches. Start the backend and UI against the sample payload. | Verify an Earth Engine project and run one polygon query. Pin Ricemapper and locate the released feature archive. |
+| 0:00–0:20 | Publish the contract and branches. Start the backend and UI against the sample payload. | Run a real one-polygon read using Earth Engine if already configured. Pivot early to Planetary Computer RTC if setup stalls. Pin Ricemapper and locate the released feature archive. |
 | 0:20–1:15 | Upload GeoJSON in the browser, open one evidence card, save an officer action to SQLite. | Run a first benchmark and send the first real export with dates, coordinates, and scene IDs. |
 | 1:15–2:30 | Implement the three statuses, budget, ranks, override, history, both farmer languages, and correction request. | Finish cached evidence, the labeled simulation, benchmark comparison, and threshold and model manifest. |
 | 2:30–3:30 | Merge into the integration branch. Wire the compatibility gate and real extraction, benchmark, and replay panel. | Validate the merged data path. Check provenance, processing assumptions and what the model consumed. |
@@ -37,8 +37,13 @@ inference, officer events and simulated correction requests independent.
 Evaluate boundary and observation sufficiency before model compatibility
 and score support. Use documented thresholds from the evidence lane.
 Display a concrete next step on every case, including unscored cases.
-Rank visit-resolvable cases deterministically. Preserve reasons and
+Implement the documented acreage-weighted visit order and its missing-data
+fallback. Keep ranks in the API and return the calculation inputs and
+plain-language rank reasons. Preserve reasons and
 recommendation snapshots when Meena records actions and overrides.
+Verify the proposed observation gates against the actual 2024 acquisitions.
+Show one retrospective case with a reported harvest date and observed
+pre-harvest radar, including any incompatibility or records request.
 
 Build the replay using the actual queue policy against seeded random and
 score-only orderings. Use the same candidate pool and budget for all three,
@@ -74,7 +79,9 @@ quality flags and preprocessing version. Put provenance next to each
 observed chart and simulated or real model score.
 
 Make all three statuses, rank reasons and next actions easy to scan.
-Show which recommendations fit the budget. Let Meena request a visit,
+Show which recommendations fit the budget. Display acreage, priority
+and the rank reason returned by the API. Show the archived pre-harvest
+observations in the retrospective example. Let Meena request a visit,
 record an action with a reason, and override with a reason. Display the
 recorded history. Build a local farmer card in Hindi and Punjabi that
 explains the recorded status and next action in plain language. Include
@@ -96,16 +103,20 @@ click sequence, any failed checks, and the branch to the integrator.
 ```text
 Read HACKATHON.md, PRODUCT.md and CONTRACT.md. Use build/evidence. Own
 scripts/benchmark.py, scripts/rebuild_demo_evidence.py, demo/ and the
-benchmark and model artifacts under reports/. Verify Earth Engine access
-first. If the team already has a working Copernicus setup and Earth Engine
-access stalls, switch early and keep one provider for the final export.
+benchmark and model artifacts under reports/. Run an Earth Engine
+query if a project is ready. If access stalls, try Planetary Computer
+sentinel-1-rtc immediately and verify one signed VV/VH asset read.
+Keep one provider for the final export. See the data references below.
 
 Extract VV/VH for a small Haryana batch including adjacent plots and a
-small plot. Record scene IDs, dates, orbit and polarization, coverage,
-units, window, provider and processing version. Cache the output. Send
+small plot. Record scene IDs, dates, ascending pass and consistent relative orbit, polarization, coverage,
+units, coefficient, reducer, window, provider and processing version.
+Record actual usable dates independently of resampled feature dates.
+Cache the output. Send
 the first real export to Codex before finishing the benchmark.
 
-Pin the Ricemapper commit and paper version. Inspect the release columns,
+Pin the Ricemapper commit and paper version. Use the exact feature paths
+below. Load only native LightGBM text models. Inspect the release columns,
 labels and task settings. Reproduce a named released DSR/PTR LightGBM
 configuration and run a handcrafted-only LightGBM track. Report the exact
 features, holdout method, seed, class counts, weighted F1, DSR precision
@@ -118,8 +129,9 @@ Fit review thresholds using a separate validation split and evaluate on
 untouched test data. Export model version and ordered feature schema.
 Check the real export for coefficient, units, reducers, smoothing, window,
 cadence, feature definitions and missingness. Report null model scores
-with a reason where parity is unverified. Ship real observations even
-when they cannot be scored. Report regional accuracy only with independent
+with a reason where parity is unverified. Ship real observations
+when they cannot be scored. Include a real pre-harvest series and a
+clearly reported fictional harvest date for the retrospective scenario. Report regional accuracy only with independent
 plot-level labels.
 
 Deliver cached observed records and clearly labeled A/B/C simulation
@@ -128,11 +140,31 @@ queue inputs. Provide exact rerun commands and actual results. Hand off
 the manifest and artifacts by 2:30 and help verify them in the merged app.
 ```
 
+## Data references for the evidence lane
+
+- The verified upstream paths are `data/features/06-01_09-05_f4d/train_HC.parquet`, `data/features/06-01_09-05_f4d/train_HC_P.parquet`, and `data/models/DSR_Jun-Sep/lgb_model.txt`. The upstream tree also contains `data/dataset_features.tar.xz`. Inspect the pretrained model's feature list before use and keep pretrained inference out of the reproduction score unless its split and inputs are verified. The HC parquet is a training input. Skip all `.joblib` files. [Ricemapper tree](https://github.com/microsoft/rice-irrigation-mapping-s1s2/tree/62ba379a8b1c923eb36232ee814bfdee6ce861c3/data)
+- Planetary Computer's public catalog supports anonymous SAS signing for RTC assets. Test one Haryana item and read both bands before relying on it. Its terrain-corrected gamma-nought is closer in coefficient to the Ricemapper training data. Verify the product metadata and preprocessing before model use. [RTC catalog](https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc) · [Anonymous SAS access](https://planetarycomputer.microsoft.com/docs/concepts/sas/) · [Ricemapper preprocessing](https://arxiv.org/html/2507.08605v2#S3)
+- Earth Engine `COPERNICUS/S1_GRD` stores sigma-nought in dB. For power units use `p = 10 ** (dB / 10)`; for dB use `10 * log10(p)` on positive valid power. Convert per pixel before a linear-power mean if the training reducer expects one. Keep the coefficient and units explicit, since a unit conversion leaves sigma-nought as sigma-nought. RTC also needs separate checks for masking, resampling, aggregation, speckle filtering, and feature parity. [Earth Engine Sentinel-1 processing](https://developers.google.com/earth-engine/guides/sentinel1)
+
 ## Judge run
 
 1. Import the featured GeoJSON. Select neighboring A and B, both claiming DSR. Show why A is ready for desk review and what a field team should confirm on B. Show C's boundary or records request.
 2. Change visit budget from zero to one. Show B enter the allocation and explain its rank. Record Meena's actions on A and B.
 3. Preview B's Hindi or Punjabi farmer card. Send a simulated correction request and show the saved record in the officer view.
 4. Inspect the real radar acquisitions, the actual benchmark numbers, and the same-budget replay. Describe the prospective pilot measure of field visits saved at a comparable incorrect-decision rate and track additional-review burden by plot size and geography.
+
+5. Show the retrospective scenario. Open the archived radar acquisitions taken before the reported harvest and explain their role in the next action.
+6. If you ran the plain-chatbot comparison, show the actual saved answer and compare it to the app's scene IDs, gate, ranking reason, and audit history. Close with the Responsible AI note in PRODUCT.md.
+
+For the plain-chatbot comparison, paste the following into a fresh chat with browsing and external tools off. Save the model name, date, input, and verbatim answer. This is a qualitative comparison of available evidence and workflow, not a model accuracy benchmark.
+
+```text
+You are advising a Haryana agriculture officer. Neighboring fictional
+plots A and B both claim direct-seeded rice in Kharif 2024. The officer has
+one visit available. The farmer reports that B has already been harvested.
+Using only this message, say which plot you would visit and why. Tell me
+what evidence is missing and whether you can identify actual Sentinel-1
+acquisition dates, their source scene IDs, or the sowing method.
+```
 
 Confirm the real submission cutoff in signed-in Unstop. Use the fields in [HACKATHON.md](HACKATHON.md) to prepare the entry.

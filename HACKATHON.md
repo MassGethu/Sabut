@@ -19,4 +19,4 @@ The public listing shows the registration deadline as **13 November 2026 at 11:5
 - **GitHub** — Use the team's repository URL. Verify a judge can open it and follow the README.
 - **Live demo URL** — Include it if available. Keep the cached local demo runnable for the team's walkthrough.
 
-In the README or walkthrough, demonstrate the neighboring-plot comparison, the one-visit budget, Meena's logged actions, the farmer review request, the real extraction, and the benchmark and replay results. Credit Ricemapper explicitly and identify which data and outcomes are simulated.
+In the README or walkthrough, demonstrate the neighboring-plot comparison, the one-visit budget, Meena's logged actions, the farmer review request, the real extraction, and the benchmark and replay results. Credit Ricemapper explicitly and identify which data and outcomes are simulated. Use the cited 2024 Haryana acreage figures in [PRODUCT.md](PRODUCT.md) to motivate the post-harvest case. Include the Responsible AI note, and show the plain-chatbot comparison only if you ran it.

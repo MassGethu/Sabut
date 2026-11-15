@@ -12,7 +12,7 @@ Read [PRODUCT.md](PRODUCT.md) for scope and [HACKATHON.md](HACKATHON.md) for con
 
 ## Claims and imports
 
-Accept a WGS84 GeoJSON `FeatureCollection` containing `Polygon` or `MultiPolygon` features. Required properties are `claim_id`, `season`, and `claimed_method` (`DSR` or `PTR`). Optional `farmer_name` is fictional in demo data. Use `Kharif 2024` in the seed batch. Treat `claim_id` as a stable unique identifier across the local workspace. Validate coordinate ranges and geometry integrity.
+Accept a WGS84 GeoJSON `FeatureCollection` containing `Polygon` or `MultiPolygon` features. Required properties are `claim_id`, `season`, and `claimed_method` (`DSR` or `PTR`). Optional `farmer_name` is fictional in demo data. Optional `claimed_acres` is a finite positive number. Seed and replay claims must supply it. Claims imported without acreage remain reviewable and may still enter the suggested queue using unweighted uncertainty. Never infer their stated acreage from the polygon. Accept optional `reported_harvest_date` (ISO date) for the retrospective demo and mark it as applicant-reported. Use `Kharif 2024` in the seed batch. Treat `claim_id` as a stable unique identifier across the local workspace. Validate coordinate ranges and geometry integrity.
 
 Send parsed GeoJSON as the request body. Return accepted IDs and feature-indexed errors. A malformed envelope fails the request. If the same claim is imported with identical inputs, keep its history and existing evidence. If an existing claim ID is uploaded with a changed boundary or season, return a conflict for that feature and instruct the uploader to use a new claim ID for the revision. Never resolve cache evidence by ID alone.
 
@@ -24,7 +24,8 @@ Send parsed GeoJSON as the request body. Return accepted IDs and feature-indexed
     "properties": {
       "claim_id": "A",
       "season": "Kharif 2024",
-      "claimed_method": "DSR"
+      "claimed_method": "DSR",
+      "claimed_acres": 2.5
     },
     "geometry": {
       "type": "Polygon",
@@ -63,8 +64,8 @@ Model output can be null. When provided, include `source_kind`, `model_version`,
 | `GET /api/health` | Return service readiness. |
 | `POST /api/claims/import` | GeoJSON body. Return `imported_ids` and `errors`, each error carrying `index`, nullable `claim_id`, and `message`. |
 | `POST /api/demo/load` | Import the featured batch through the same import service. Return the import response. Load idempotently. |
-| `GET /api/queue?budget=1` | Return `budget` and `items`. Each item contains `claim_id`, `season`, `claimed_method`, `status`, `reason_code`, `reason`, `next_action`, nullable `rank` and `rank_reason`, and `in_visit_budget`. Reject negative budgets. |
-| `GET /api/claims/{id}` | Return the queue item fields, GeoJSON `geometry`, nullable decision `evidence`, nullable `real_evidence` when shown alongside a simulation, nullable `model`, `actions`, and `review_requests`. |
+| `GET /api/queue?budget=1` | Return `budget` and `items`. Each item contains `claim_id`, `season`, `claimed_method`, `status`, `reason_code`, `reason`, `next_action`, nullable `rank`, `rank_reason`, `claimed_acres`, and `visit_priority`, and `in_visit_budget`. Reject negative budgets. |
+| `GET /api/claims/{id}` | Return the queue item fields, GeoJSON `geometry`, nullable decision `evidence`, nullable `real_evidence` when shown alongside a simulation, nullable `model`, nullable `reported_harvest_date`, `actions`, and `review_requests`. |
 | `POST /api/claims/{id}/actions` | Accept `action`, `reason`, and `actor`. Record a server UTC timestamp and the recommendation snapshot. Return the saved event including ID, action, reason, actor, timestamp, and whether it overrides the recommendation. |
 | `POST /api/claims/{id}/review-requests` | Accept `reason` and `language` (`hi` or `pa`). Return a persisted receipt with ID, timestamp, and `simulated: true`. |
 | `GET /api/benchmark` | Return the benchmark and the replay report when present. Surface a clear pending state while artifacts are missing. |
@@ -79,9 +80,21 @@ Model output can be null. When provided, include `source_kind`, `model_version`,
 
 Action values are the four next-action values above. Require a reason for every recorded officer action, including overrides. Record the underlying recommendation even when the officer chooses a different action. Keep the current recorded action and recommendation visible in the UI. Store events independently of radar and model artifacts.
 
-Evaluate boundary and data quality, then feature compatibility, then score support. Use documented, configurable sufficiency criteria and validation-derived thresholds. Include a specific field question when a visit could resolve ambiguity or disagreement with the claim. Assign visit ranks only to cases where a field check could resolve a decision. Use an explicit priority and stable claim ID tie-break. A change to the visit budget changes the allocation cutoff while keeping rank explainable. An override is an officer action and remains available outside the suggested budget. A novel uncached claim receives `insufficient_evidence` with a specific request, and an incompatible export displays the compatibility reason.
+Evaluate boundary and data quality, then feature compatibility, then score support. For the Kharif 2024 demo, start with the configurable criteria below. These are prototype quality gates. Use validation data for the separate model-score decision thresholds. Include a specific field question when a visit could resolve ambiguity or disagreement with the claim. Assign visit ranks only to cases where a field check could resolve a decision. Use the visit priority defined below and a stable claim ID tie-break. A change to the visit budget changes the allocation cutoff while keeping rank explainable. An override is an officer action and remains available outside the suggested budget. A novel uncached claim receives `insufficient_evidence` with a specific request, and an incompatible export displays the compatibility reason.
 
-Example queue response. The text is a simulated scenario.
+### Demo evidence thresholds
+
+Use the 1 June to 5 September 2024 inclusive sowing window for the named benchmark track. Filter real input to ascending scenes with VV and VH and use a consistent relative orbit for the plot time series. The single-platform repeat cycle was about 12 days in that window, so expect roughly eight dates from a consistently acquired track and confirm with the catalog. The benchmark's four-day grid comes from temporal resampling. Count distinct, usable acquisition dates only. [Sentinel-1 mission history](https://documentation.dataspace.copernicus.eu/Data/SentinelMissions/Sentinel1.html) · [Ricemapper methods](https://arxiv.org/html/2507.08605v2#S3)
+
+Start with at least **5 distinct usable dates**, **70% valid plot coverage per usable acquisition**, and no gap over **24 days** between usable dates or between the usable observations and the window edges. Also require a usable boundary and valid VV/VH on those dates. Document settings, expose the failed criterion on the evidence card, and record any fixture-specific change. A retrospective case uses the same gate and shows the harvest date as reported. For the judge example, show the pre-harvest archive even if it is unscored.
+
+### Visit priority
+
+For visit-eligible cases with a compatible DSR model score `s`, use the score-ambiguity index `u = 1 - 2 * abs(s - 0.5)`. Rank cases with acreage by descending `u * claimed_acres * 4000`, then by ascending claim ID. The ₹4,000/ac multiplier is a historical Kharif 2024 demo parameter, configurable and constant across the batch. It does not change relative order, and the result is a priority index rather than a payment, expected loss, or calibrated probability. Label model scores and simulation provenance. [2024 Haryana reporting](https://www.tribuneindia.com/news/haryana/69-of-claims-of-haryana-farmers-for-dsr-incentive-found-fake)
+
+Keep eligible cases with a score and missing acreage after the weighted cases, ordered by descending `u`, then claim ID. If a separately documented manual reason makes an unscored case visit-eligible, append it by claim ID with its manual reason. Cases needing a boundary correction or a records request remain outside the suggested visit allocation. Overrides remain available to the officer. The backend owns ranks and sends `rank_reason`, plus nullable `claimed_acres` and nullable `visit_priority` for display. The UI displays these fields without recalculating the order.
+
+Example queue response. The text is a simulated scenario with a DSR score of 0.55 and 2.5 claimed acres.
 
 ```json
 {
@@ -95,7 +108,9 @@ Example queue response. The text is a simulated scenario.
     "reason": "The observations support more than one sowing method.",
     "next_action": "request_field_visit",
     "rank": 1,
-    "rank_reason": "Confirming the sowing method in the field could resolve this claim.",
+    "rank_reason": "A field check could resolve the ambiguous signal. The priority uses the score ambiguity and 2.5 claimed acres.",
+    "claimed_acres": 2.5,
+    "visit_priority": 9000,
     "in_visit_budget": true
   }]
 }
@@ -107,5 +122,5 @@ Example queue response. The text is a simulated scenario.
 - Change budget 0 → 1 and see B enter the visit allocation. Record A's desk-review action and B's visit request. Demonstrate an override and see all events after a restart.
 - Switch the farmer preview between Hindi and Punjabi. Submit a simulated correction and see its receipt and the officer-side event.
 - Import a fresh plot and inspect a deliberately incompatible export. Each has an actionable reason and no unsupported model score.
-- Open the real extraction, benchmark, and same-budget replay in the app. Identify the provenance and limits of each.
+- Open the real extraction, benchmark, and same-budget replay in the app. Identify the provenance and limits of each. Show a retrospective scenario using real pre-harvest acquisition dates and explain the next action.
 - Start from a clean checkout following the README. After dependency installation, run the whole judge workflow offline from cached data.

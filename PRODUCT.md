@@ -9,6 +9,8 @@ Sabūt helps an agriculture officer review claims for direct-seeded rice incenti
 
 Haryana operates a direct-seeded rice incentive scheme. Sabūt focuses on the officer who has more claims than visits available and needs to decide where a field check adds the most value. Too few radar observations, an unreliable boundary, and a signal consistent with multiple sowing methods call for different next actions. [Haryana agriculture scheme portal](https://fasal.haryana.gov.in/) · [Haryana agriculture scheme overview](https://hipaco.in/public/hipa/pdf/prochures/gujarat/InitativesofAgricultureDepartmentHaryana.pdf)
 
+In Kharif 2024, Haryana farmers registered **506,814.73 acres** as DSR. *The Tribune*, citing the agriculture department's physical verification, reported **156,891.37 acres confirmed as DSR** (about 31% of registered acreage). Officials told the paper that **42,036.78 acres could not be checked after harvest**, when fields had been prepared for the next crop. These figures describe acreage in one season. The unchecked acreage has an unknown sowing method. [The Tribune, 28 November 2024](https://www.tribuneindia.com/news/haryana/69-of-claims-of-haryana-farmers-for-dsr-incentive-found-fake)
+
 Meena, a fictional Agriculture Development Officer, can send a field team to one of three claimed plots today. **Two neighboring plots claim the same sowing method. Sabūt shows why one is ready for desk review and the other needs a visit. Meena records the action on both.** Farmers and incentive claims in the demo are fictional.
 
 ## Prototype workflow
@@ -42,6 +44,12 @@ Evidence card → ranked officer queue → recorded action or field check
 - **App** — FastAPI, SQLite, React, and an offline-capable plot map. Keep the feature export and inference independent of the officer's action log. Publish one benchmark script and one evidence rebuild script. Telegram, route optimization, payments, and live retraining are outside the MVP.
 
 Sabūt's original contribution is the claim-review workflow around Ricemapper's classification foundation. It gives the officer traceable plot evidence, a reasoned queue constrained by a visit budget, and a recorded action that a farmer can query or challenge.
+
+## Additional judge checks
+
+- **Review after harvest.** Open a fictional case with a recorded harvest date before the review date. Show actual, cached sowing-window radar dated before that harvest and the recommendation or specific evidence gap. Explain which question the archive can help with and what still needs records or officer review. The scenario dates are fictional, the source acquisitions are real, and archive availability alone cannot establish sowing method.
+- **Plain chatbot comparison.** Give a plain chatbot the same claim summary and budget without radar data or geospatial tools. Use the prompt in [GOALS.md](GOALS.md), save the actual answer if run, and compare what can be verified. Sabūt retrieves dated scene evidence, checks input compatibility, allocates a visit with an explicit rule, and stores the officer's action and correction request.
+- **Responsible AI.** Use historical data for the model and show its region and evaluation limits. Make every recommendation inspectable and overridable. Give farmers status and recourse in Hindi and Punjabi. Flag missing or incompatible evidence early. Use fictional claim information during the demo. Log visit selection and overrides, and assess review burden by plot size and geography in a pilot. Acreage-weighted ranking can move larger claims up the queue, so make the acreage input and rank reason visible.
 
 ## Measurement and proof
 
