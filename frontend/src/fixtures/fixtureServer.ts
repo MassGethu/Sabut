@@ -88,6 +88,12 @@ export const fixtureServer: Api = {
     if (!d) throw new ApiError(404, "Claim not found.");
     return { ...clone(d), ...snapshot(id, budget) };
   },
+  async claims(budget) {
+    await delay(150);
+    if (budget < 0) throw new ApiError(422, "budget: Input should be greater than or equal to 0");
+    const items = loaded ? queueOrder().filter((id) => details[id]).map((id) => ({ ...clone(details[id]), ...snapshot(id, budget) })) : [];
+    return { budget, items };
+  },
   async recordAction(id, budget, body) {
     await delay(500);
     const d = details[id];

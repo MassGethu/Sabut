@@ -66,6 +66,7 @@ An unscored real export can set `model.compatible: false` and include its compat
 | `POST /api/claims/import` | GeoJSON body. Return `imported_ids` and `errors`, each error carrying `index`, nullable `claim_id`, and `message`. |
 | `POST /api/demo/load` | Import the featured batch through the same import service. Return the import response. Load idempotently. |
 | `GET /api/queue?budget=1` | Return `budget` and `items`. Each item contains `claim_id`, `season`, `claimed_method`, `status`, `reason_code`, `reason`, `next_action`, nullable `rank`, `rank_reason`, `claimed_acres`, and `visit_priority`, and `in_visit_budget`. Reject negative budgets. |
+| `GET /api/claims?budget=1` | Return `budget` and `items`: every claim's `GET /api/claims/{id}` body, in queue order, from one queue pass. Reject negative budgets. |
 | `GET /api/claims/{id}` | Return the queue item fields, GeoJSON `geometry`, nullable decision `evidence`, nullable `real_evidence` when shown alongside a simulation, nullable `model`, nullable `reported_harvest_date`, `actions`, and `review_requests`. |
 | `POST /api/claims/{id}/actions` | Accept `action`, `reason`, and `actor`. Record a server UTC timestamp and the recommendation snapshot. Return the saved event including ID, action, reason, actor, timestamp, and whether it overrides the recommendation. |
 | `POST /api/claims/{id}/review-requests` | Accept `reason` and `language` (`hi`, `pa`, or `en`). Return a persisted receipt with ID, timestamp, and `simulated: true`. |

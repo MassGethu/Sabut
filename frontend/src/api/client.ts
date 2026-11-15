@@ -6,6 +6,7 @@ import type {
   ImportResponse,
   Language,
   QueueResponse,
+  ClaimsResponse,
   ReviewReceipt,
 } from "./types";
 import { fixtureServer } from "../fixtures/fixtureServer";
@@ -77,6 +78,8 @@ export interface Api {
   loadDemo(): Promise<ImportResponse>;
   queue(budget: number): Promise<QueueResponse>;
   claim(id: string, budget: number): Promise<ClaimDetail>;
+  /** Every claim's detail in queue order, in one request. */
+  claims(budget: number): Promise<ClaimsResponse>;
   recordAction(
     id: string,
     budget: number,
@@ -95,6 +98,7 @@ const liveApi: Api = {
   loadDemo: () => request("POST", "/demo/load"),
   queue: (budget) => request("GET", `/queue?budget=${budget}`),
   claim: (id, budget) => request("GET", `/claims/${enc(id)}?budget=${budget}`),
+  claims: (budget) => request("GET", `/claims?budget=${budget}`),
   recordAction: (id, budget, body) => request("POST", `/claims/${enc(id)}/actions?budget=${budget}`, body),
   requestReview: (id, body) => request("POST", `/claims/${enc(id)}/review-requests`, body),
   benchmark: () => request("GET", "/benchmark"),

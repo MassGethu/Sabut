@@ -31,6 +31,11 @@ export interface QueueResponse {
   items: QueueItem[];
 }
 
+export interface ClaimsResponse {
+  budget: number;
+  items: ClaimDetail[];
+}
+
 export interface ImportError {
   index: number;
   claim_id: string | null;

@@ -109,7 +109,8 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const q = await api.queue(b);
+      // One request returns the queue order and every claim's detail.
+      const q = await api.claims(b);
       if (my !== seq.current) return;
       const before = new Set(prevQueue.current.filter((i) => i.in_visit_budget).map((i) => i.claim_id));
       const entered = q.items.filter((i) => i.in_visit_budget && !before.has(i.claim_id)).map((i) => i.claim_id);
@@ -119,9 +120,7 @@ export default function App() {
         setJustAllocated(entered);
         window.setTimeout(() => setJustAllocated([]), 2600);
       }
-      const ds = await Promise.all(q.items.map((i) => api.claim(i.claim_id, b)));
-      if (my !== seq.current) return;
-      setDetails(Object.fromEntries(ds.map((d) => [d.claim_id, d])));
+      setDetails(Object.fromEntries(q.items.map((d) => [d.claim_id, d])));
       // Keep a deep-linked selection while the workspace is still empty.
       setSelectedId((cur) =>
         cur && (!q.items.length || q.items.some((i) => i.claim_id === cur)) ? cur : q.items[0]?.claim_id ?? null,

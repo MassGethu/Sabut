@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Annotated, Any, Literal
 
 from fastapi import Body, FastAPI, HTTPException, Query
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, StringConstraints
@@ -56,6 +57,7 @@ def create_app(*, database=None, demo_dir=None, reports_dir=None, frontend_dist=
         yield
 
     app = FastAPI(title="Sabūt", version="1", lifespan=lifespan)
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
 
     def queue(db, budget):
         catalog = EvidenceCatalog.from_files(demo_dir, reports_dir, FIXTURES)
@@ -103,20 +105,32 @@ def create_app(*, database=None, demo_dir=None, reports_dir=None, frontend_dist=
         with storage.connect(database) as db:
             return {"budget": budget, "items": [decision.item for decision in queue(db, budget)]}
 
+    def detail(db, claim, decision):
+        claim_id = claim["claim_id"]
+        return {
+            **decision.item, "geometry": json.loads(claim["geometry"]),
+            "farmer_name": claim["farmer_name"],
+            "reported_harvest_date": claim["reported_harvest_date"],
+            "evidence": decision.evidence, "real_evidence": decision.real_evidence, "model": decision.model,
+            "actions": storage.action_history(db, claim_id),
+            "review_requests": storage.review_requests(db, claim_id),
+        }
+
+    @app.get("/api/claims")
+    def claim_details(budget: Budget = 1):
+        """Every claim's detail in queue order, built from one queue pass."""
+        with storage.connect(database) as db:
+            db.execute("BEGIN")
+            rows = {row["claim_id"]: dict(row) for row in db.execute("SELECT * FROM claims")}
+            items = [detail(db, rows[d.item["claim_id"]], d) for d in queue(db, budget)]
+            return {"budget": budget, "items": items}
+
     @app.get("/api/claims/{claim_id}")
     def claim_detail(claim_id: str, budget: Budget = 1):
         with storage.connect(database) as db:
             db.execute("BEGIN")
             claim = get_claim(db, claim_id)
-            decision = selected_decision(db, claim_id, budget)
-            return {
-                **decision.item, "geometry": json.loads(claim["geometry"]),
-                "farmer_name": claim["farmer_name"],
-                "reported_harvest_date": claim["reported_harvest_date"],
-                "evidence": decision.evidence, "real_evidence": decision.real_evidence, "model": decision.model,
-                "actions": storage.action_history(db, claim_id),
-                "review_requests": storage.review_requests(db, claim_id),
-            }
+            return detail(db, claim, selected_decision(db, claim_id, budget))
 
     @app.post("/api/claims/{claim_id}/actions", status_code=201)
     def record_action(claim_id: str, data: OfficerAction, budget: Budget = 1):
