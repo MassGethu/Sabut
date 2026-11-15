@@ -449,3 +449,4 @@ p { margin: 0 0 8px; }
 .prov-more dl div { display: contents; }
 .prov-more dt { color: var(--muted); font-size: 11px; }
 .prov-more dd { margin: 0; word-break: break-word; }
+.row-sabut td { background: #eef5f0; }
