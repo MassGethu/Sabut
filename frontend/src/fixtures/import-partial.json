@@ -1,0 +1,1 @@
+{"imported_ids":["D"],"errors":[{"index":1,"claim_id":"E","message":"claimed_method must be DSR or PTR."},{"index":2,"claim_id":"B","message":"This claim ID already has a different boundary or season. Use a new claim ID for the revision."}]}
