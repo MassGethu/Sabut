@@ -33,7 +33,7 @@ function pick(obj: Json, keys: string[], depth = 3): Json {
 }
 
 function fmtVal(v: Json): string {
-  if (typeof v === "number") return Math.abs(v) <= 1 && !Number.isInteger(v) ? v.toFixed(3) : fmtNum(v, 3);
+  if (typeof v === "number") return Math.abs(v) <= 1 && !Number.isInteger(v) ? fmtNum(v, 4) : fmtNum(v, 3);
   if (typeof v === "string") return v;
   if (typeof v === "boolean") return v ? "yes" : "no";
   if (v === null || v === undefined) return "—";
@@ -187,15 +187,15 @@ const TRACK_LABEL: Record<string, string> = {
 function TrackComparison({ report }: { report: Record<string, Json> }) {
   const comparison = report.comparison_on_test as Record<string, Json>;
   const paper = isObj(report.paper) ? report.paper : null;
-  const publishedText =
-    paper && typeof paper.published_reference === "string" ? paper.published_reference : null;
+  const publishedScore = typeof paper?.published_weighted_f1 === "number" ? fmtVal(paper.published_weighted_f1) : "≈ 0.80";
+  const publishedText = typeof paper?.published_configuration === "string" ? paper.published_configuration : null;
   const tracks = Array.isArray(report.tracks) ? report.tracks.filter(isObj) : [];
   const trackInfo = (name: string) => tracks.find((t) => t.name === name);
   return (
     <>
       <div className="published-ref">
         <span className="eyebrow">Published (paper)</span>
-        <strong className="big">≈ 0.80 weighted F1</strong>
+        <strong className="big">{publishedScore} weighted F1</strong>
         <p className="small">
           {publishedText ?? "Published sowing result for specific feature combinations."}
           {paper && typeof paper.url === "string" ? (
@@ -207,7 +207,7 @@ function TrackComparison({ report }: { report: Record<string, Json> }) {
         </p>
       </div>
       <div className="table-wrap">
-        <table>
+        <table aria-label="Ricemapper rerun metrics on the held-out test set">
           <thead>
             <tr>
               <th>Reproduced on the public release (test split)</th>
@@ -266,7 +266,7 @@ function ReplayTable({ report }: { report: Record<string, Json> }) {
         <Metric label="Outcome source" value={report.outcome_source} />
       </div>
       <div className="table-wrap">
-        <table>
+        <table aria-label="Simulated outcomes at the same visit budget">
           <thead>
             <tr>
               <th>Method</th>
