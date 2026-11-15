@@ -455,3 +455,4 @@ p { margin: 0 0 8px; }
 .fc-override { margin-top: 8px !important; background: #fff; border-left: 4px solid var(--brand); padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 15px; }
 .published-ref { background: #faf8f3; border-left: 4px solid var(--info); border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 2px; }
 .published-ref p { margin: 0; }
+.tree-sentences { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
