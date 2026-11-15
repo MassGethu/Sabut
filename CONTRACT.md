@@ -45,7 +45,7 @@ Example import response for the payload above.
 
 | File | Contents |
 |---|---|
-| `demo/claims.geojson` | Three featured fictional claims with adjacent A/B boundaries and a small or poorly covered C, plus a separate retrospective case. |
+| `demo/claims.geojson` | Three featured fictional claims with adjacent A/B boundaries and a small or poorly covered C, plus a separate retrospective case. The batch may also hold scattered review cases and background claims that route to desk review. |
 | `demo/evidence.json` | Real georeferenced records with `schema_version: 1` and a `records` array. |
 | `demo/workflow-simulation.json` | Same version and record shape, labeled simulated. Supplies A/B/C if verified compatible outputs are unavailable. Use separate replay inputs and inspection outcomes within this file or in documented companion files. |
 | `reports/benchmark.json` | Paper citation, upstream commit, dataset and feature configurations, split and seed, metrics, baseline results, and limitations. |

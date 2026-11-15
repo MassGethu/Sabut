@@ -1,9 +1,11 @@
 """Rebuild Sabūt's cached demo evidence.
 
 Writes, under demo/:
-  claims.geojson            Featured fictional claims A, B, C on real Karnal (Haryana) farmland.
-  evidence.json             Real Sentinel-1 RTC plot series for A, B, C (source_kind sentinel1_real).
-  workflow-simulation.json  Labeled simulated A/B/C decision evidence (source_kind simulated).
+  claims.geojson            ~260 fictional claims on irregular plots over real Karnal (Haryana) cropland:
+                            featured A/B/C/ARCHIVE, review cases D-H and KNL-### background claims
+                            (layout in scripts/demo_layout.py).
+  evidence.json             Real Sentinel-1 RTC plot series for every claim (source_kind sentinel1_real).
+  workflow-simulation.json  Labeled simulated decision evidence for the batch (source_kind simulated).
   replay-claims.geojson     Fictional replay batch with stated acreage.
   replay-evidence.json      Simulated replay evidence (scores, ties, missing scores).
   replay-outcomes.json      Simulated inspection outcomes keyed by claim ID, kept apart from queue inputs.
@@ -12,8 +14,8 @@ Real extraction uses Microsoft Planetary Computer `sentinel-1-rtc` with anonymou
 signing. Signed asset URLs are used in memory only and never written to disk.
 
 Usage:
-  python scripts/rebuild_demo_evidence.py            # real extraction + simulation + replay
-  python scripts/rebuild_demo_evidence.py --offline  # simulation + replay only, keep cached evidence.json
+  python scripts/rebuild_demo_evidence.py            # layout + real extraction + simulation + replay
+  python scripts/rebuild_demo_evidence.py --offline  # simulation + replay only, keep cached claims and evidence
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if not __package__:
     sys.path.insert(0, str(ROOT))
 from backend.identity import geometry_hash
+from demo_layout import build_batch
 
 DEMO = ROOT / "demo"
 REPORTS = ROOT / "reports"
@@ -57,22 +60,8 @@ UTM_EPSG = 32643  # WGS 84 / UTM 43N, the native CRS of the RTC tiles over Karna
 SIM_SEED = 20240601
 REPLAY_SEED = 7
 
-# Fictional claims drawn as UTM rectangles on farmland west of Karnal city, Haryana.
-# Boundaries were placed on a Sentinel-2 L2A true-colour chip; they are not surveyed parcels.
-FEATURED = [
-    {"claim_id": "A", "farmer_name": "Ramesh Kumar", "claimed_method": "DSR",
-     "claimed_acres": 2.5, "utm": (686730, 3282120, 686830, 3282220)},
-    {"claim_id": "B", "farmer_name": "Sunita Devi", "claimed_method": "DSR",
-     "claimed_acres": 2.5, "utm": (686830, 3282120, 686930, 3282220)},
-    {"claim_id": "C", "farmer_name": "Gurpreet Singh", "claimed_method": "DSR",
-     "claimed_acres": 0.4, "utm": (686420, 3282400, 686460, 3282440)},
-    {"claim_id": "ARCHIVE", "farmer_name": "Harjit Singh", "claimed_method": "DSR",
-     "claimed_acres": 2.5, "utm": (686930, 3282120, 687030, 3282220),
-     "reported_harvest_date": "2024-10-08"},
-]
-
-
 def utm_rect_to_geometry(x0, y0, x1, y1) -> dict:
+    """Rectangle in UTM 43N metres as a WGS84 polygon; used for the simulated replay plots."""
     from pyproj import Transformer
 
     to_wgs = Transformer.from_crs(UTM_EPSG, 4326, always_xy=True)
@@ -137,16 +126,11 @@ def load_manifest() -> dict | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def featured_claims() -> list[dict]:
-    features = []
-    for c in FEATURED:
-        props = {"claim_id": c["claim_id"], "season": SEASON, "claimed_method": c["claimed_method"],
-                 "claimed_acres": c["claimed_acres"], "farmer_name": c["farmer_name"]}
-        if c.get("reported_harvest_date"):
-            props["reported_harvest_date"] = c["reported_harvest_date"]
-            props["reported_harvest_date_source"] = "applicant_reported_fictional"
-        features.append({"type": "Feature", "properties": props, "geometry": utm_rect_to_geometry(*c["utm"])})
-    return features
+def load_claims() -> list[dict]:
+    path = DEMO / "claims.geojson"
+    if not path.exists():
+        raise SystemExit("demo/claims.geojson is missing; run without --offline to lay out the batch.")
+    return json.loads(path.read_text(encoding="utf-8"))["features"]
 
 
 # --- real extraction --------------------------------------------------------------------
@@ -163,29 +147,45 @@ def search_catalog(bbox):
     return sorted(items, key=lambda it: it.datetime)
 
 
-def plot_reduce(item, geom_utm):
-    """Read VV and VH for one plot. Returns per-plot stats; linear-power mean over valid pixels."""
-    import numpy as np
+def read_scene(item, bounds_utm) -> dict:
+    """Read the VV and VH window covering every plot once per scene."""
     import rasterio
+    from rasterio.windows import from_bounds
+
+    pad = 40
+    x0, y0, x1, y1 = bounds_utm
+    scene = {}
+    for band in ("vv", "vh"):
+        with rasterio.open(item.assets[band].href) as ds:
+            if ds.crs.to_epsg() != UTM_EPSG:
+                raise RuntimeError(f"{item.id} {band}: unexpected CRS {ds.crs}")
+            win = from_bounds(x0 - pad, y0 - pad, x1 + pad, y1 + pad, ds.transform).round_offsets().round_lengths()
+            scene[band] = ds.read(1, window=win, boundless=True, fill_value=ds.nodata).astype("float64")
+            scene["transform"] = ds.window_transform(win)
+            scene["nodata"] = ds.nodata
+    return scene
+
+
+def plot_reduce(scene: dict, geom_utm: dict) -> dict:
+    """Per-plot stats from a scene window; linear-power mean over pixels valid in both bands."""
+    import numpy as np
     from rasterio.features import geometry_mask
     from rasterio.windows import from_bounds
 
     xs = [p[0] for p in geom_utm["coordinates"][0]]
     ys = [p[1] for p in geom_utm["coordinates"][0]]
-    pad = 20
+    win = from_bounds(min(xs) - 20, min(ys) - 20, max(xs) + 20, max(ys) + 20, scene["transform"])
+    win = win.round_offsets().round_lengths()
+    rows = slice(max(int(win.row_off), 0), int(win.row_off + win.height))
+    cols = slice(max(int(win.col_off), 0), int(win.col_off + win.width))
+    transform = scene["transform"] * scene["transform"].translation(cols.start, rows.start)
     arrays = {}
     for band in ("vv", "vh"):
-        with rasterio.open(item.assets[band].href) as ds:
-            if ds.crs.to_epsg() != UTM_EPSG:
-                raise RuntimeError(f"{item.id} {band}: unexpected CRS {ds.crs}")
-            win = from_bounds(min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad, ds.transform).round_offsets().round_lengths()
-            data = ds.read(1, window=win, boundless=True, fill_value=ds.nodata).astype("float64")
-            transform = ds.window_transform(win)
-            nodata = ds.nodata
+        data = scene[band][rows, cols]
         inside = ~geometry_mask([geom_utm], out_shape=data.shape, transform=transform, all_touched=False)
         valid = inside & np.isfinite(data) & (data > 0)
-        if nodata is not None:
-            valid &= data != nodata
+        if scene["nodata"] is not None:
+            valid &= data != scene["nodata"]
         arrays[band] = (data, inside, valid)
     inside = arrays["vv"][1]
     n_pixels = int(inside.sum())
@@ -265,16 +265,27 @@ def extract_real(claims: list[dict], manifest: dict | None) -> dict:
     present = {it.datetime.date() for it in series}
     missing_expected = [iso_day(x) for x in expected if x not in present]
 
+    utm_geoms = {}
+    for feat in claims:
+        ring = feat["geometry"]["coordinates"][0]
+        utm_geoms[feat["properties"]["claim_id"]] = {
+            "type": "Polygon", "coordinates": [[list(to_utm.transform(lon, lat)) for lon, lat in ring]]}
+    xs = [p[0] for g in utm_geoms.values() for p in g["coordinates"][0]]
+    ys = [p[1] for g in utm_geoms.values() for p in g["coordinates"][0]]
+    scenes = []
+    for it in series:
+        print(f"reading {it.id}", flush=True)
+        scenes.append((it, read_scene(it, (min(xs), min(ys), max(xs), max(ys)))))
+
     records = []
     for feat in claims:
         props = feat["properties"]
-        ring = feat["geometry"]["coordinates"][0]
-        geom_utm = {"type": "Polygon", "coordinates": [[list(to_utm.transform(lon, lat)) for lon, lat in ring]]}
+        geom_utm = utm_geoms[props["claim_id"]]
         observations = []
         n_pixels = None
-        for it in series:
+        for it, scene in scenes:
             meta = item_meta(it)
-            stats = plot_reduce(it, geom_utm)
+            stats = plot_reduce(scene, geom_utm)
             n_pixels = stats["n_pixels"]
             vf = stats["valid_fraction"]
             reason = None
@@ -382,15 +393,16 @@ def sim_series(kind: str, rng: random.Random) -> list[tuple[float, float]]:
 
 
 def sim_record(claim_id, geom_hash, kind, score, rng, *, valid=0.95, drop=(), flags=None,
-               field_question=None, manual=None, model_reason=None, compatible=True):
+               field_question=None, manual=None, model_reason=None, compatible=True,
+               drop_valid=0.3, drop_reason="Simulated low plot coverage."):
     obs = []
     usable_days = []
     for i, (d, (vv, vh)) in enumerate(zip(SIM_DATES, sim_series(kind, rng))):
         usable = i not in drop
         obs.append({"acquired_at": f"{d.isoformat()}T12:56:00Z", "scene_id": f"SIM-{claim_id}-{i + 1}",
                     "vv": vv if usable else None, "vh": vh if usable else None,
-                    "valid_fraction": valid if usable else 0.3, "usable": usable,
-                    "reason": None if usable else "Simulated low plot coverage."})
+                    "valid_fraction": valid if usable else drop_valid, "usable": usable,
+                    "reason": None if usable else drop_reason})
         if usable:
             usable_days.append(d)
     model = None
@@ -413,27 +425,65 @@ def sim_record(claim_id, geom_hash, kind, score, rng, *, valid=0.95, drop=(), fl
     return rec
 
 
-def build_simulation(claims: list[dict]) -> dict:
+REVIEW_QUESTIONS = {
+    "B": ("Was B sown by direct seeding into dry or moist soil, or were nursery seedlings transplanted "
+          "into a puddled field? Look for nursery-bed remnants, puddling marks and regular transplant rows."),
+    "D": ("The score looks like transplanting, but D claims DSR. Check for puddling marks, a nursery bed on "
+          "the holding and evenly spaced transplant hills rather than drilled seed lines."),
+    "E": ("E's signal sits between both methods. Ask when and how the field was sown, and look for drilled "
+          "seed rows or seed-drill wheel marks along the headland."),
+    "F": ("F claims transplanting but the signal is mixed. Confirm a nursery was raised and look for "
+          "transplant hills and bund repairs from puddling."),
+}
+
+
+def build_simulation(claims: list[dict], real_pixels: dict | None = None) -> dict:
+    """Simulated decision evidence for every claim in the batch, keyed by claim and geometry hash."""
     rng = random.Random(SIM_SEED)
     h = {f["properties"]["claim_id"]: geometry_hash(f["geometry"]) for f in claims}
+    c_pixels = (real_pixels or {}).get("C")
+    c_size = f"about {c_pixels}" if c_pixels else f"fewer than {MIN_PLOT_PIXELS}"
     records = [
         sim_record("A", h["A"], "dsr", 0.91, rng),
-        sim_record("B", h["B"], "mixed", 0.55, rng, field_question=(
-            "Was B sown by direct seeding into dry or moist soil, or were nursery seedlings transplanted "
-            "into a puddled field? Look for nursery-bed remnants, puddling marks and regular transplant rows.")),
+        sim_record("B", h["B"], "mixed", 0.55, rng, field_question=REVIEW_QUESTIONS["B"]),
         sim_record("C", h["C"], "dsr", None, rng, flags=[{"code": "plot_too_small", "detail": (
-            "The 0.4-acre boundary covers about 16 Sentinel-1 pixels, below the 20-pixel minimum. "
-            "Supply a corrected or merged plot boundary.")}]),
+            f"The 0.4-acre boundary covers {c_size} Sentinel-1 pixel centres, below the {MIN_PLOT_PIXELS}-pixel "
+            "minimum. Supply a corrected or merged plot boundary.")}]),
+        sim_record("D", h["D"], "ptr", 0.12, rng, field_question=REVIEW_QUESTIONS["D"]),
+        sim_record("E", h["E"], "mixed", 0.40, rng, field_question=REVIEW_QUESTIONS["E"]),
+        sim_record("F", h["F"], "mixed", 0.63, rng, field_question=REVIEW_QUESTIONS["F"]),
+        sim_record("G", h["G"], "dsr", 0.86, rng, drop=(2, 3, 4), drop_valid=0.0,
+                   drop_reason="Simulated: no acquisition reached this plot on this date."),
+        sim_record("H", h["H"], "dsr", 0.83, rng, drop=(1, 2, 3, 4, 5), drop_valid=0.55,
+                   drop_reason="Simulated valid plot coverage 55%, below 70%."),
     ]
+    covered = {r["claim_id"] for r in records} | {"ARCHIVE"}
+    background = 0
+    for f in claims:
+        cid, method = f["properties"]["claim_id"], f["properties"]["claimed_method"]
+        if cid in covered:
+            continue
+        crng = random.Random(f"{SIM_SEED}-{cid}")
+        score = round(crng.uniform(0.78, 0.97) if method == "DSR" else crng.uniform(0.03, 0.22), 2)
+        records.append(sim_record(cid, h[cid], "dsr" if method == "DSR" else "ptr", score, crng))
+        background += 1
     return {
         "schema_version": SCHEMA_VERSION, "source_kind": "simulated",
-        "provenance": ("SIMULATED workflow evidence for the featured A/B/C decision scenario. Observation values, "
-                       "scene IDs (SIM-*) and model scores are fictional. Geometry hashes match demo/claims.geojson "
-                       "so the real extraction in demo/evidence.json can be shown alongside."),
+        "provenance": ("SIMULATED workflow evidence for the whole demo batch. Observation values, scene IDs (SIM-*) "
+                       "and model scores are fictional. Geometry hashes match demo/claims.geojson so the real "
+                       "extraction in demo/evidence.json can be shown alongside. ARCHIVE has no simulated record "
+                       "and uses its real, unscored extraction only."),
         "expected_outcomes": {
             "A": "ready_for_desk_review (simulated score 0.91 supports claimed DSR)",
-            "B": "field_check_recommended (simulated score 0.55 is ambiguous) with a concrete field question",
+            "B": "field_check_recommended, visit rank 1 (score 0.55, 2.5 ac, priority 9000)",
             "C": "insufficient_evidence with request_boundary_correction (plot too small for 10 m radar)",
+            "D": "field_check_recommended (score 0.12 supports PTR; claim says DSR)",
+            "E": "field_check_recommended (score 0.40 is ambiguous)",
+            "F": "field_check_recommended (score 0.63 is ambiguous; claim says PTR)",
+            "G": "insufficient_evidence with request_records (36-day gap between usable dates)",
+            "H": "insufficient_evidence with request_records (only 3 dates reach 70% plot coverage)",
+            "ARCHIVE": "insufficient_evidence with request_records (real export is unscored; retrospective case)",
+            "KNL-*": f"ready_for_desk_review ({background} background claims whose simulated score supports the claim)",
         },
         "records": records,
     }
@@ -584,20 +634,27 @@ def main() -> int:
                         help="Skip the network extraction; rebuild simulation and replay, keep demo/evidence.json.")
     args = parser.parse_args()
 
-    claims = featured_claims()
     manifest = load_manifest()
     if not args.offline:
+        claims, layout = build_batch(SEASON)
         evidence = extract_real(claims, manifest)
+        evidence["layout"] = layout
+        write_json(DEMO / "claims.geojson", {"type": "FeatureCollection", "features": claims})
         write_json(DEMO / "evidence.json", evidence)
         for r in evidence["records"]:
-            print(f"{r['claim_id']}: {r['usable_count']} usable of {len(r['observations'])} scenes, "
-                  f"pixels={r['plot_pixels']}, gate={r['quality_gate']['failed_criterion'] or 'pass'}")
-        print(f"catalog: {evidence['catalog']['items_by_orbit']} missing={evidence['catalog']['missing_expected_dates']}")
+            if not r["claim_id"].startswith("KNL-"):
+                print(f"{r['claim_id']}: {r['usable_count']} usable of {len(r['observations'])} scenes, "
+                      f"pixels={r['plot_pixels']}, gate={r['quality_gate']['failed_criterion'] or 'pass'}")
+        print(f"{len(evidence['records'])} real records; catalog: {evidence['catalog']['items_by_orbit']} "
+              f"missing={evidence['catalog']['missing_expected_dates']}")
     elif not (DEMO / "evidence.json").exists():
         print("demo/evidence.json is missing; run without --offline to extract it.", file=sys.stderr)
         return 1
-    write_json(DEMO / "claims.geojson", {"type": "FeatureCollection", "features": claims})
-    write_json(DEMO / "workflow-simulation.json", build_simulation(claims))
+    else:
+        claims = load_claims()
+    real = json.loads((DEMO / "evidence.json").read_text(encoding="utf-8"))
+    simulation = build_simulation(claims, {r["claim_id"]: r.get("plot_pixels") for r in real["records"]})
+    write_json(DEMO / "workflow-simulation.json", simulation)
     rc, re_, ro = build_replay()
     write_json(DEMO / "replay-claims.geojson", rc)
     write_json(DEMO / "replay-evidence.json", re_)
@@ -605,10 +662,9 @@ def main() -> int:
     counts = {k: list(ro["outcomes"].values()).count(k) for k in OUTCOME_DEFINITIONS}
     print(f"wrote demo/ artifacts; replay outcomes {counts}")
 
-    featured_fc = {"type": "FeatureCollection", "features": claims}
-    real = json.loads((DEMO / "evidence.json").read_text(encoding="utf-8"))
-    errors = (validate_artifact(real, featured_fc, "sentinel1_real", "evidence.json")
-              + validate_artifact(build_simulation(claims), featured_fc, "simulated", "workflow-simulation.json")
+    batch_fc = {"type": "FeatureCollection", "features": claims}
+    errors = (validate_artifact(real, batch_fc, "sentinel1_real", "evidence.json")
+              + validate_artifact(simulation, batch_fc, "simulated", "workflow-simulation.json")
               + validate_artifact(re_, rc, "simulated", "replay-evidence.json"))
     missing = {r["claim_id"] for r in re_["records"]} - set(ro["outcomes"])
     if missing:

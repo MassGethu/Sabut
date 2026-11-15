@@ -109,17 +109,21 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
     const group = plotLayer.current;
     if (!m || !group) return;
     group.clearLayers();
-    for (const p of plots) {
+    // Desk-review plots are drawn first and muted so the few cases needing action stay readable on top.
+    const needsAction = (p: MapPlot) => p.status !== "ready_for_desk_review";
+    const ordered = [...plots].sort((a, b) => Number(needsAction(a)) - Number(needsAction(b)));
+    for (const p of ordered) {
       const selected = p.id === selectedId;
       const compared = compareIds.includes(p.id);
+      const quiet = !needsAction(p) && !selected && !compared;
       const color = STATUS_COLOR[p.status] ?? "#555";
       const weak = p.status === "insufficient_evidence";
       const base: L.PathOptions = {
         color: selected ? "#14201a" : color,
-        weight: selected ? 3.5 : compared ? 3 : 2,
+        weight: selected ? 3.5 : compared ? 3 : quiet ? 1 : 2,
         dashArray: weak && !selected ? "5 4" : compared && !selected ? "8 4" : undefined,
         fillColor: color,
-        fillOpacity: selected ? 0.5 : 0.3,
+        fillOpacity: selected ? 0.5 : quiet ? 0.15 : 0.3,
       };
       const gj = L.geoJSON(p.geometry as GeoJSON.GeoJsonObject, { style: base });
       gj.on("click", (e: L.LeafletMouseEvent) => {
@@ -136,7 +140,7 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
       });
       const visit = p.inBudget ? `<span class="map-label-visit">Visit #${p.rank}</span>` : "";
       gj.bindTooltip(`<span class="map-label-id">${escapeHtml(p.id)}</span>${visit}`, {
-        permanent: true,
+        permanent: !quiet,
         direction: "center",
         className: `map-label ${selected ? "map-label-selected" : ""}`,
       });
