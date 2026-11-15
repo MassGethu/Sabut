@@ -53,6 +53,8 @@ function fmtDeg(v: number, step: number, pos: string, neg: string): string {
  */
 export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Props) {
   const host = useRef<HTMLDivElement>(null);
+  const wrap = useRef<HTMLDivElement>(null);
+  const [full, setFull] = useState(false);
   const map = useRef<L.Map | null>(null);
   const plotLayer = useRef<L.FeatureGroup | null>(null);
   const gridLayer = useRef<L.LayerGroup | null>(null);
@@ -263,8 +265,40 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
     m.fitBounds(L.geoJSON(p.geometry as GeoJSON.GeoJsonObject).getBounds(), { padding: [90, 90], maxZoom: 19 });
   }
 
+  // Full screen: a fixed overlay that fills the window at once, upgraded to true browser
+  // full screen where the Fullscreen API is allowed. Esc or the button closes either.
+  useEffect(() => {
+    const sync = () => {
+      if (!document.fullscreenElement) setFull(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFull(false);
+    };
+    document.addEventListener("fullscreenchange", sync);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("fullscreenchange", sync);
+      document.removeEventListener("keydown", esc);
+    };
+  }, []);
+
+  useEffect(() => {
+    map.current?.invalidateSize();
+  }, [full]);
+
+  function toggleFull() {
+    if (full) {
+      setFull(false);
+      if (document.fullscreenElement) void document.exitFullscreen();
+      return;
+    }
+    setFull(true);
+    // Optional upgrade; embedded frames and iPhone Safari refuse it and keep the overlay.
+    wrap.current?.requestFullscreen?.().catch(() => undefined);
+  }
+
   return (
-    <div className="map-wrap">
+    <div className={`map-wrap ${full ? "map-full" : ""}`} ref={wrap}>
       <header className="map-heading">
         <h2>Claim map</h2>
         <div className="map-tools">
@@ -289,6 +323,9 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
               Zoom to {selectedId}
             </button>
           ) : null}
+          <button className="map-btn" onClick={toggleFull} aria-pressed={full} title={full ? "Exit full screen (Esc)" : "Full screen"}>
+            {full ? "Exit full screen" : "⛶ Full screen"}
+          </button>
         </div>
       </header>
       <div className="map-canvas">

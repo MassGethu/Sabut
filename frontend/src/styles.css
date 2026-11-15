@@ -933,3 +933,9 @@ summary { align-content: center; }
 .phone-input input { flex: 1; min-width: 0; border: 1px solid #ddd; border-radius: 20px; padding: 8px 12px; font: inherit; background: #fff; }
 .phone-send { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--brand, #1f5f3f); color: #fff; font-size: 16px; cursor: pointer; flex: none; }
 .phone-send:disabled { opacity: .45; cursor: default; }
+
+/* Full-screen map (Fullscreen API or fixed overlay fallback) */
+.map-wrap.map-full { position: fixed; inset: 0; z-index: 2000; border-radius: 0; display: flex; flex-direction: column; }
+.map-wrap:fullscreen { border-radius: 0; display: flex; flex-direction: column; background: var(--panel); }
+.map-wrap.map-full .map-canvas, .map-wrap:fullscreen .map-canvas { flex: 1; min-height: 0; }
+.map-wrap.map-full .map-canvas .map, .map-wrap:fullscreen .map-canvas .map { height: 100%; }
