@@ -43,7 +43,19 @@ function fmtVal(v: Json): string {
 /** Generic, readable rendering of report JSON so new fields appear without code changes. */
 function JsonTree({ value, depth = 0 }: { value: Json; depth?: number }) {
   if (Array.isArray(value)) {
-    if (value.every((x) => !isObj(x) && !Array.isArray(x))) return <span className="mono">{value.map(fmtVal).join(", ")}</span>;
+    if (value.every((x) => !isObj(x) && !Array.isArray(x))) {
+      // Sentences (limitations, protocol notes) read better as a list than a joined line.
+      if (value.some((x) => typeof x === "string" && x.length > 40)) {
+        return (
+          <ul className="tree-sentences">
+            {value.map((x, i) => (
+              <li key={i}>{fmtVal(x)}</li>
+            ))}
+          </ul>
+        );
+      }
+      return <span className="mono">{value.map(fmtVal).join(", ")}</span>;
+    }
     if (value.every((x) => Array.isArray(x))) {
       return (
         <table className="matrix">

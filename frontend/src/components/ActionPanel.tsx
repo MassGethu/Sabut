@@ -63,32 +63,20 @@ export function ActionPanel({ detail, budget, onSaved, highlightReceiptId }: Pro
 
   return (
     <section className="panel action-panel" aria-labelledby="action-h">
-      <div className="panel-head">
-        <h3 id="action-h">Meena's decision</h3>
-        <span className="muted small">Officer-owned. Sabūt recommends; it never approves, rejects or pays.</span>
-      </div>
+      <h3 id="action-h">Meena's decision</h3>
+      <p className="muted small action-sub">Sabūt recommends. Meena decides; approval and payment stay outside the app.</p>
 
       <div className="current-row">
-        <div>
-          <span className="eyebrow">Recommendation</span>
-          <strong>{actionLabel(detail.next_action)}</strong>
-          <span className="muted small"> · {statusLabel(detail.status)}</span>
-        </div>
-        <div>
-          <span className="eyebrow">Current recorded action</span>
-          {current ? (
-            <>
-              <strong>{actionLabel(current.action)}</strong>
-              {current.overrides_recommendation ? <Tag tone="warn">Override</Tag> : null}
-              <span className="muted small">
-                {" "}
-                · {current.actor}, {fmtLocal(current.timestamp)}
-              </span>
-            </>
-          ) : (
-            <span className="muted">None recorded yet</span>
-          )}
-        </div>
+        <span className="eyebrow">Recorded action</span>
+        {current ? (
+          <span>
+            <strong>{actionLabel(current.action)}</strong>
+            {current.overrides_recommendation ? <Tag tone="warn">Override</Tag> : null}
+            <span className="muted small"> · {current.actor}, {fmtLocal(current.timestamp)}</span>
+          </span>
+        ) : (
+          <span className="muted">None yet</span>
+        )}
       </div>
 
       <form onSubmit={save} className="action-form">
@@ -98,18 +86,16 @@ export function ActionPanel({ detail, budget, onSaved, highlightReceiptId }: Pro
             {ACTION_VALUES.map((a) => (
               <label key={a} className={`action-opt ${action === a ? "on" : ""}`}>
                 <input type="radio" name="action" value={a} checked={action === a} onChange={() => setAction(a)} />
+                <span className="radio-dot" aria-hidden />
                 <span>{actionLabel(a)}</span>
-                {a === detail.next_action ? <small className="rec">recommended</small> : null}
+                {a === detail.next_action ? <small className="rec">Recommended</small> : null}
               </label>
             ))}
           </div>
           {isOverride ? (
             <p className="override-note" role="note">
-              <strong>Override.</strong> The recommendation is “{actionLabel(detail.next_action)}”. Your reason is
-              recorded with the recommendation snapshot.
-              {action === "request_field_visit" && !detail.in_visit_budget
-                ? " This claim is outside the suggested visit allocation; an officer may still send a visit."
-                : ""}
+              <strong>Override</strong> of “{actionLabel(detail.next_action)}”. Your reason is saved with the recommendation.
+              {action === "request_field_visit" && !detail.in_visit_budget ? " This claim is outside the suggested visits." : ""}
             </p>
           ) : null}
           <div className="form-row">
@@ -177,19 +163,21 @@ export function History({
     ...requests.map((r) => ({ kind: "request" as const, at: r.timestamp, r })),
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
 
+  const [all, setAll] = useState(false);
+  const shown = all ? entries : entries.slice(0, 3);
   return (
     <div className="history">
       <h4>
-        History <span className="muted small">({actions.length} officer action{actions.length === 1 ? "" : "s"}, {requests.length} farmer request{requests.length === 1 ? "" : "s"})</span>
+        History <span className="muted small">· {actions.length} action{actions.length === 1 ? "" : "s"}, {requests.length} farmer request{requests.length === 1 ? "" : "s"}</span>
       </h4>
       {!entries.length ? <p className="muted small">No recorded events for this claim.</p> : null}
       <ol className="timeline">
-        {entries.map((en) =>
+        {shown.map((en) =>
           en.kind === "action" ? (
             <li key={`a${en.e.id}`} className="tl-action">
               <div className="tl-head">
                 <strong>{actionLabel(en.e.action)}</strong>
-                {en.e.overrides_recommendation ? <Tag tone="warn">Override</Tag> : <Tag tone="good">Follows recommendation</Tag>}
+                {en.e.overrides_recommendation ? <Tag tone="warn">Override</Tag> : <Tag tone="good">As recommended</Tag>}
                 <span className="muted small">
                   #{en.e.id} · {en.e.actor} · {fmtLocal(en.e.timestamp)}
                 </span>
@@ -224,6 +212,11 @@ export function History({
           ),
         )}
       </ol>
+      {entries.length > 3 ? (
+        <button className="link-btn small" onClick={() => setAll((v) => !v)}>
+          {all ? "Show latest 3" : `Show all ${entries.length} events`}
+        </button>
+      ) : null}
     </div>
   );
 }
