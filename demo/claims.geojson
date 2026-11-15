@@ -1,0 +1,118 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "claim_id": "A",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 2.5,
+        "farmer_name": "Ramesh Kumar (fictional)",
+        "reported_harvest_date": "2024-10-08",
+        "reported_harvest_date_source": "applicant_reported_fictional"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.92925,
+              29.65506
+            ],
+            [
+              76.930283,
+              29.655045
+            ],
+            [
+              76.9303,
+              29.655947
+            ],
+            [
+              76.929268,
+              29.655962
+            ],
+            [
+              76.92925,
+              29.65506
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "claim_id": "B",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 2.5,
+        "farmer_name": "Sunita Devi (fictional)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.930283,
+              29.655045
+            ],
+            [
+              76.931316,
+              29.65503
+            ],
+            [
+              76.931333,
+              29.655932
+            ],
+            [
+              76.9303,
+              29.655947
+            ],
+            [
+              76.930283,
+              29.655045
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "claim_id": "C",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 0.4,
+        "farmer_name": "Gurpreet Singh (fictional)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.926097,
+              29.657632
+            ],
+            [
+              76.92651,
+              29.657626
+            ],
+            [
+              76.926517,
+              29.657987
+            ],
+            [
+              76.926104,
+              29.657993
+            ],
+            [
+              76.926097,
+              29.657632
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
