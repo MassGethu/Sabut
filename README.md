@@ -46,6 +46,12 @@ The classification foundation is Microsoft's Ricemapper. See [the paper](https:/
 
 The cached [Sentinel-1 extraction](demo/evidence.json) uses ascending Sentinel-1A relative orbit 27 over georeferenced plots near Karnal. The 28 June acquisition is absent from the catalog for this track, leaving a 24-day gap. The producer uses terrain-corrected gamma-nought from Microsoft Planetary Computer and takes plot means in linear power before converting to dB. [Planetary Computer RTC collection](https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc)
 
+## Ricemapper benchmark
+
+On one stratified holdout of 129 Punjab plots, test weighted F1 was **0.7464** for handcrafted + Presto LightGBM, **0.6790** for handcrafted-only LightGBM, and **0.5504** for the radar-rule baseline. The paper reports 0.798 for autoencoder + Fourier features. The released coordinates are unavailable, so this rerun uses a random plot holdout and cannot verify geographic separation. [Benchmark details](reports/README.md) · [Ricemapper paper](https://arxiv.org/html/2507.08605v2)
+
+The handcrafted track's validation-derived review band used 0.30 and 0.69 as its endpoints. On the untouched test split, 111 of 129 cases fell in the review band, and desk DSR precision was 4 of 6, below the 90% validation target. Real demo exports have unverified feature parity and show the radar observations with unavailable scores. [Model manifest](reports/model-manifest.json) · [Rebuild instructions](demo/README.md)
+
 ## Queue replay
 
 `make replay` regenerates [reports/replay.json](reports/replay.json) from the cached simulated inputs. In a pool of 17 visit-eligible claims from 25 applications, the replay allocated five visits per method. Sabūt and seeded random each reached **3 of 5** cases that were resolved or corrected. Score-only visited **4 of 5**. The random selection seed is 42. The outcome generator uses seed 7 and treats simulated scores as probabilities when drawing a latent sowing method, an assumption that favors ambiguity-based selection. This exercise checks the policy mechanics under simulated outcomes.

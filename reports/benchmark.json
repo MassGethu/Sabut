@@ -1,0 +1,356 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-15T12:14:31Z",
+  "generator": "scripts/benchmark.py",
+  "rerun_command": "python scripts/benchmark.py --trials 30",
+  "provenance": "Public Ricemapper Punjab Kharif 2024 feature release (TNC PRANA labels). No Haryana labels were used or evaluated.",
+  "paper": {
+    "title": "Machine Learning for Sustainable Rice Production: Region-Scale Monitoring of Water-Saving Practices in Punjab, India",
+    "authors": "Ando Shah et al.",
+    "arxiv": "2507.08605v2",
+    "url": "https://arxiv.org/abs/2507.08605v2",
+    "published_weighted_f1": 0.798,
+    "published_configuration": "Autoencoder + Fourier features (AE+FT), Punjab sowing classification."
+  },
+  "upstream": {
+    "repo": "https://github.com/microsoft/rice-irrigation-mapping-s1s2",
+    "commit": "62ba379a8b1c923eb36232ee814bfdee6ce861c3",
+    "files": {
+      "train_HC": {
+        "path": "data/features/06-01_09-05_f4d/train_HC.parquet",
+        "sha256": "33cb92e003f7573a5754fe5edabd55e10d3c49773dd149623516dd914ec55de7"
+      },
+      "train_HC_P": {
+        "path": "data/features/06-01_09-05_f4d/train_HC_P.parquet",
+        "sha256": "593b6441ae226612cc8a437f1081c040c3d5a69b221eaa98ccaaee4703b7b431"
+      },
+      "pretrained_lgb": {
+        "path": "data/models/DSR_Jun-Sep/lgb_model.txt",
+        "sha256": "bea0457452602f9c9e971a2ab68b9d3c601aeacb4b3e68d2824ab21cb17c1d1a"
+      }
+    },
+    "archive_not_used": "data/dataset_features.tar.xz (the two parquet files above are the extracted DSR inputs)"
+  },
+  "task": {
+    "name": "DSR (sowing)",
+    "label_map": {
+      "AWD": 0,
+      "PTR": 0,
+      "DSR": 1
+    },
+    "note": "Upstream TASK=DSR maps PTR and AWD to 0. AWD plots are transplanted with alternate wetting and drying, so the negative class is transplanted rice.",
+    "window": "2024-06-01 to 2024-09-05",
+    "cadence": "4-day resampled grid (f=4d)",
+    "class_counts": {
+      "AWD": 452,
+      "DSR": 420,
+      "PTR": 411
+    },
+    "binary_counts": {
+      "DSR": 420,
+      "non_DSR": 863
+    }
+  },
+  "split": {
+    "method": "sklearn train_test_split, stratified on the DSR label, random_state 42: 10% test first, then 10% of all rows as validation (upstream SPLIT=0.1, SPLIT_VAL=0.1 recipe).",
+    "seed": 42,
+    "rows": {
+      "train": 1025,
+      "validation": 129,
+      "test": 129
+    },
+    "dsr_rows": {
+      "train": 336,
+      "validation": 42,
+      "test": 42
+    },
+    "same_split_for_all_tracks": true,
+    "geographic_separation": "Not verifiable. The release removes coordinates and district identifiers, so the holdout is a random plot-level split, not a geographic one."
+  },
+  "tracks": [
+    {
+      "name": "hc_p_lgb",
+      "description": "Named released configuration: TASK=DSR, Jun 1-Sep 5 2024 at f=4d, handcrafted + Presto features (train_HC_P.parquet), LightGBM.",
+      "model": "LightGBM (LGBMClassifier, multiclass objective, 2 classes)",
+      "n_features": 6333,
+      "hyperparameter_search": {
+        "sampler": "optuna TPE seed 42",
+        "trials": 30,
+        "objective": "validation weighted F1",
+        "search_space": "upstream train_model.py",
+        "best_params": {
+          "max_depth": 6,
+          "learning_rate": 0.007881986718161347,
+          "n_estimators": 442,
+          "subsample": 0.9228218664486578,
+          "colsample_bytree": 0.8484863105192059,
+          "min_child_samples": 26,
+          "min_split_gain": 0.025735431528126955,
+          "num_leaves": 919,
+          "reg_alpha": 2.5591575807515246e-07,
+          "reg_lambda": 1.531313850993167e-06
+        },
+        "best_validation_weighted_f1": 0.7405
+      },
+      "validation": {
+        "n": 129,
+        "weighted_f1": 0.7405,
+        "macro_f1": 0.7099,
+        "accuracy": 0.7364,
+        "dsr_precision": 0.5833,
+        "dsr_recall": 0.6667,
+        "confusion_matrix": {
+          "labels": [
+            "non-DSR (PTR or AWD-transplanted)",
+            "DSR"
+          ],
+          "rows_true_cols_pred": [
+            [
+              67,
+              20
+            ],
+            [
+              14,
+              28
+            ]
+          ]
+        }
+      },
+      "test": {
+        "n": 129,
+        "weighted_f1": 0.7464,
+        "macro_f1": 0.7139,
+        "accuracy": 0.7442,
+        "dsr_precision": 0.6,
+        "dsr_recall": 0.6429,
+        "confusion_matrix": {
+          "labels": [
+            "non-DSR (PTR or AWD-transplanted)",
+            "DSR"
+          ],
+          "rows_true_cols_pred": [
+            [
+              69,
+              18
+            ],
+            [
+              15,
+              27
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "name": "hc_lgb",
+      "description": "Handcrafted-only LightGBM (train_HC.parquet), same split and search.",
+      "model": "LightGBM (LGBMClassifier, multiclass objective, 2 classes)",
+      "n_features": 61,
+      "hyperparameter_search": {
+        "sampler": "optuna TPE seed 42",
+        "trials": 30,
+        "objective": "validation weighted F1",
+        "search_space": "upstream train_model.py",
+        "best_params": {
+          "max_depth": 7,
+          "learning_rate": 0.003245383368770599,
+          "n_estimators": 242,
+          "subsample": 0.6748713972807527,
+          "colsample_bytree": 0.8052695322666352,
+          "min_child_samples": 9,
+          "min_split_gain": 0.06769817484012264,
+          "num_leaves": 1911,
+          "reg_alpha": 0.23984261038735627,
+          "reg_lambda": 0.000295616974266313
+        },
+        "best_validation_weighted_f1": 0.6596
+      },
+      "validation": {
+        "n": 129,
+        "weighted_f1": 0.6596,
+        "macro_f1": 0.6251,
+        "accuracy": 0.6512,
+        "dsr_precision": 0.4717,
+        "dsr_recall": 0.5952,
+        "confusion_matrix": {
+          "labels": [
+            "non-DSR (PTR or AWD-transplanted)",
+            "DSR"
+          ],
+          "rows_true_cols_pred": [
+            [
+              59,
+              28
+            ],
+            [
+              17,
+              25
+            ]
+          ]
+        }
+      },
+      "test": {
+        "n": 129,
+        "weighted_f1": 0.679,
+        "macro_f1": 0.6311,
+        "accuracy": 0.6822,
+        "dsr_precision": 0.5128,
+        "dsr_recall": 0.4762,
+        "confusion_matrix": {
+          "labels": [
+            "non-DSR (PTR or AWD-transplanted)",
+            "DSR"
+          ],
+          "rows_true_cols_pred": [
+            [
+              68,
+              19
+            ],
+            [
+              22,
+              20
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "name": "radar_rule",
+      "description": "One-feature radar threshold rule fit on training rows (HC features).",
+      "rule": "predict DSR if VV_ASCENDING_mean_spline_troughs_values_3 < 14",
+      "feature": "VV_ASCENDING_mean_spline_troughs_values_3",
+      "threshold": 14.0,
+      "direction": "<",
+      "fit": "exhaustive search over 61 HC features x 49 training quantiles x 2 directions, max training weighted F1",
+      "train": {
+        "n": 1025,
+        "weighted_f1": 0.6892,
+        "macro_f1": 0.6401,
+        "accuracy": 0.6966,
+        "dsr_precision": 0.5442,
+        "dsr_recall": 0.4583,
+        "confusion_matrix": {
+          "labels": [
+            "non-DSR (PTR or AWD-transplanted)",
+            "DSR"
+          ],
+          "rows_true_cols_pred": [
+            [
+              560,
+              129
+            ],
+            [
+              182,
+              154
+            ]
+          ]
+        }
+      },
+      "test": {
+        "n": 129,
+        "weighted_f1": 0.5504,
+        "macro_f1": 0.4881,
+        "accuracy": 0.5504,
+        "dsr_precision": 0.3095,
+        "dsr_recall": 0.3095,
+        "confusion_matrix": {
+          "labels": [
+            "non-DSR (PTR or AWD-transplanted)",
+            "DSR"
+          ],
+          "rows_true_cols_pred": [
+            [
+              58,
+              29
+            ],
+            [
+              29,
+              13
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "comparison_on_test": {
+    "hc_p_lgb": {
+      "weighted_f1": 0.7464,
+      "dsr_precision": 0.6,
+      "dsr_recall": 0.6429
+    },
+    "hc_lgb": {
+      "weighted_f1": 0.679,
+      "dsr_precision": 0.5128,
+      "dsr_recall": 0.4762
+    },
+    "radar_rule": {
+      "weighted_f1": 0.5504,
+      "dsr_precision": 0.3095,
+      "dsr_recall": 0.3095
+    }
+  },
+  "pretrained_model": {
+    "path": "data/models/DSR_Jun-Sep/lgb_model.txt",
+    "sha256": "bea0457452602f9c9e971a2ab68b9d3c601aeacb4b3e68d2824ab21cb17c1d1a",
+    "format": "LightGBM text v4",
+    "num_class": 2,
+    "n_features": 6333,
+    "n_handcrafted_features": 61,
+    "n_other_features": 6272,
+    "feature_groups": [
+      "location",
+      "time"
+    ],
+    "matches_train_HC_P_columns": true,
+    "used_for_scores": false,
+    "reason_not_used": "Its training split is not released, so scoring our holdout could include its training rows. It also needs Presto embeddings that Sab\u016bt cannot compute for a new plot. Inspected only."
+  },
+  "protocol_differences": [
+    "Optuna runs 30 trials per track (upstream default 200) with a seeded TPE sampler; upstream's sampler is unseeded.",
+    "Hyperparameters are tuned on the validation split (upstream does the same when SPLIT_VAL > 0); the test split is used once.",
+    "deterministic=True and n_jobs set to the local CPU count; upstream uses min(8, cpu_count//4).",
+    "The paper's reported numbers may use different splits, trials or ensembles; this is a single seeded holdout of the public release.",
+    "Geographic grouping (district holdout) cannot be reproduced because coordinates are removed."
+  ],
+  "sabut_review_thresholds": {
+    "model_version": "sabut-dsr-hc-lgb-v1",
+    "ptr_max_score": 0.3,
+    "dsr_min_score": 0.69,
+    "feasible": true,
+    "objective": "On validation only: maximise desk coverage subject to >= 90% precision for both desk DSR calls (score >= dsr_min_score) and desk PTR calls (score <= ptr_max_score); ties prefer the narrower review band. Grid step 0.01.",
+    "evaluation": {
+      "validation": {
+        "n": 129,
+        "desk_dsr_calls": 7,
+        "desk_dsr_precision": 1.0,
+        "desk_ptr_calls": 2,
+        "desk_ptr_precision": 1.0,
+        "review_band_count": 120,
+        "review_band_fraction": 0.9302,
+        "desk_coverage": 0.0698,
+        "dsr_in_review_band": 35,
+        "dsr_rows_called_ptr_at_desk": 0,
+        "non_dsr_rows_called_dsr_at_desk": 0
+      },
+      "test": {
+        "n": 129,
+        "desk_dsr_calls": 6,
+        "desk_dsr_precision": 0.6667,
+        "desk_ptr_calls": 12,
+        "desk_ptr_precision": 0.9167,
+        "review_band_count": 111,
+        "review_band_fraction": 0.8605,
+        "desk_coverage": 0.1395,
+        "dsr_in_review_band": 37,
+        "dsr_rows_called_ptr_at_desk": 1,
+        "non_dsr_rows_called_dsr_at_desk": 2
+      }
+    }
+  },
+  "limitations": [
+    "Punjab-only training labels; Haryana transfer is not validated and no Haryana accuracy is reported.",
+    "Single random plot-level holdout of 129 test rows; metrics carry sampling noise of several F1 points.",
+    "Scores are LightGBM model scores, not calibrated probabilities.",
+    "Validation split has ~128 rows, so review thresholds are coarse."
+  ]
+}

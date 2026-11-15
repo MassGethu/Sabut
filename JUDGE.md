@@ -38,6 +38,10 @@ Run the local production build using the repository README.
 | Inspect the retrospective archive | Open **ARCHIVE**. Its fictional applicant reports a harvest on 8 October 2024. The seven usable Sentinel-1A dates, from 4 June to 27 August, show pre-harvest backscatter for this mapped boundary. Show the scene IDs and the 24-day gap. The score is unavailable because the RTC processing has unverified feature parity with the model. Ask for dated sowing records. |
 | Explain the evaluation | Open the public-feature benchmark and its radar-rule baseline, and disclose the split and regional limits. Open the replay and read the counts and denominators for all three methods at the same budget. The inspection outcomes in the replay are simulated. |
 
+### Benchmark result
+
+The same 129-row Punjab holdout gave weighted F1 of 0.7464 for the released handcrafted + Presto configuration, 0.6790 for handcrafted-only LightGBM, and 0.5504 for a simple radar rule. The paper reports 0.798 for autoencoder + Fourier features. On the handcrafted track, 111 of 129 test rows were in the review band. Only four of six test desk DSR calls were correct. This fell below the 90% validation target. [Benchmark report](reports/benchmark.json) · [Ricemapper paper](https://arxiv.org/html/2507.08605v2)
+
 ### Replay result
 
 At a budget of five visits from 17 eligible claims, Sabūt reached 3 resolved or corrected cases, seeded random reached 3, and score-only reached 4. The score-only baseline orders by descending ambiguity, and the random selection seed is 42. The simulated outcome generator's assumptions favor ambiguity-based selection. [Replay report](reports/replay.json)
