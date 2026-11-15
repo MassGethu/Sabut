@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "claim_id": "A",
+      "season": "Kharif 2024",
+      "geometry_hash": "3b81bb68338e80118cb0fb55cd3faa44d19345cd63439e1c58148c2460105f49",
+      "source_kind": "simulated",
+      "window": {
+        "start": "2024-06-01",
+        "end": "2024-09-05"
+      },
+      "processing_version": "simulation-v1",
+      "units": "dB",
+      "acquisition_settings": {
+        "provider": "workflow simulation"
+      },
+      "observations": [
+        {
+          "acquired_at": "2024-06-09T00:00:00Z",
+          "scene_id": "SIM-A-1",
+          "vv": -14.0,
+          "vh": -22.0,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-21T00:00:00Z",
+          "scene_id": "SIM-A-2",
+          "vv": -13.0,
+          "vh": -21.55,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-03T00:00:00Z",
+          "scene_id": "SIM-A-3",
+          "vv": -12.0,
+          "vh": -21.1,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-15T00:00:00Z",
+          "scene_id": "SIM-A-4",
+          "vv": -12.8,
+          "vh": -20.65,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-27T00:00:00Z",
+          "scene_id": "SIM-A-5",
+          "vv": -11.8,
+          "vh": -20.2,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-08T00:00:00Z",
+          "scene_id": "SIM-A-6",
+          "vv": -10.8,
+          "vh": -19.75,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-20T00:00:00Z",
+          "scene_id": "SIM-A-7",
+          "vv": -11.6,
+          "vh": -19.3,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-09-01T00:00:00Z",
+          "scene_id": "SIM-A-8",
+          "vv": -10.6,
+          "vh": -18.85,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        }
+      ],
+      "quality_flags": [],
+      "model": {
+        "source_kind": "simulated",
+        "model_version": "simulation-v1",
+        "feature_schema": [],
+        "compatible": true,
+        "compatibility_reason": "Fictional score for the workflow demonstration.",
+        "dsr_score": 0.93
+      },
+      "usable_count": 8,
+      "gaps": []
+    },
+    {
+      "claim_id": "B",
+      "season": "Kharif 2024",
+      "geometry_hash": "4995d059a3ae92c18e224309b8337a30ad4ab99df0ccf2c1f975b1e0cb01d8c0",
+      "source_kind": "simulated",
+      "window": {
+        "start": "2024-06-01",
+        "end": "2024-09-05"
+      },
+      "processing_version": "simulation-v1",
+      "units": "dB",
+      "acquisition_settings": {
+        "provider": "workflow simulation"
+      },
+      "observations": [
+        {
+          "acquired_at": "2024-06-09T00:00:00Z",
+          "scene_id": "SIM-B-1",
+          "vv": -14.0,
+          "vh": -22.0,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-21T00:00:00Z",
+          "scene_id": "SIM-B-2",
+          "vv": -13.0,
+          "vh": -21.4,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-03T00:00:00Z",
+          "scene_id": "SIM-B-3",
+          "vv": -12.0,
+          "vh": -20.8,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-15T00:00:00Z",
+          "scene_id": "SIM-B-4",
+          "vv": -12.8,
+          "vh": -20.2,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-07-27T00:00:00Z",
+          "scene_id": "SIM-B-5",
+          "vv": -11.8,
+          "vh": -19.6,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-08T00:00:00Z",
+          "scene_id": "SIM-B-6",
+          "vv": -10.8,
+          "vh": -19.0,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-20T00:00:00Z",
+          "scene_id": "SIM-B-7",
+          "vv": -11.6,
+          "vh": -18.4,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-09-01T00:00:00Z",
+          "scene_id": "SIM-B-8",
+          "vv": -10.6,
+          "vh": -17.8,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        }
+      ],
+      "quality_flags": [],
+      "model": {
+        "source_kind": "simulated",
+        "model_version": "simulation-v1",
+        "feature_schema": [],
+        "compatible": true,
+        "compatibility_reason": "Fictional score for the workflow demonstration.",
+        "dsr_score": 0.55
+      },
+      "usable_count": 8,
+      "gaps": []
+    },
+    {
+      "claim_id": "C",
+      "season": "Kharif 2024",
+      "geometry_hash": "e9af3c6106596e68e7e8e78cd21b1b8c5d5e12232393e7924428d2893658bcb7",
+      "source_kind": "simulated",
+      "window": {
+        "start": "2024-06-01",
+        "end": "2024-09-05"
+      },
+      "processing_version": "simulation-v1",
+      "units": "dB",
+      "acquisition_settings": {
+        "provider": "workflow simulation"
+      },
+      "observations": [
+        {
+          "acquired_at": "2024-06-09T00:00:00Z",
+          "scene_id": "SIM-C-1",
+          "vv": -14.0,
+          "vh": -22.0,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-06-21T00:00:00Z",
+          "scene_id": "SIM-C-2",
+          "vv": null,
+          "vh": null,
+          "valid_fraction": 0.41,
+          "usable": false,
+          "reason": "Simulated low coverage."
+        },
+        {
+          "acquired_at": "2024-07-03T00:00:00Z",
+          "scene_id": "SIM-C-3",
+          "vv": null,
+          "vh": null,
+          "valid_fraction": 0.41,
+          "usable": false,
+          "reason": "Simulated low coverage."
+        },
+        {
+          "acquired_at": "2024-07-15T00:00:00Z",
+          "scene_id": "SIM-C-4",
+          "vv": null,
+          "vh": null,
+          "valid_fraction": 0.41,
+          "usable": false,
+          "reason": "Simulated low coverage."
+        },
+        {
+          "acquired_at": "2024-07-27T00:00:00Z",
+          "scene_id": "SIM-C-5",
+          "vv": null,
+          "vh": null,
+          "valid_fraction": 0.41,
+          "usable": false,
+          "reason": "Simulated low coverage."
+        },
+        {
+          "acquired_at": "2024-08-08T00:00:00Z",
+          "scene_id": "SIM-C-6",
+          "vv": -10.8,
+          "vh": -19.0,
+          "valid_fraction": 0.95,
+          "usable": true,
+          "reason": null
+        },
+        {
+          "acquired_at": "2024-08-20T00:00:00Z",
+          "scene_id": "SIM-C-7",
+          "vv": null,
+          "vh": null,
+          "valid_fraction": 0.41,
+          "usable": false,
+          "reason": "Simulated low coverage."
+        },
+        {
+          "acquired_at": "2024-09-01T00:00:00Z",
+          "scene_id": "SIM-C-8",
+          "vv": null,
+          "vh": null,
+          "valid_fraction": 0.41,
+          "usable": false,
+          "reason": "Simulated low coverage."
+        }
+      ],
+      "quality_flags": [
+        "low_coverage"
+      ],
+      "model": null,
+      "usable_count": 2,
+      "gaps": [
+        {
+          "start": "2024-06-09",
+          "end": "2024-08-08",
+          "reason": "60 days without a usable acquisition between these dates."
+        },
+        {
+          "start": "2024-08-08",
+          "end": "2024-09-05",
+          "reason": "28 days without a usable acquisition between these dates."
+        }
+      ]
+    }
+  ]
+}

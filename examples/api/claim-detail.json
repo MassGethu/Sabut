@@ -137,7 +137,8 @@
       "compatible": true,
       "compatibility_reason": "Fictional score for the workflow demonstration.",
       "dsr_score": 0.55
-    }
+    },
+    "geometry_hash": "4995d059a3ae92c18e224309b8337a30ad4ab99df0ccf2c1f975b1e0cb01d8c0"
   },
   "real_evidence": null,
   "model": {

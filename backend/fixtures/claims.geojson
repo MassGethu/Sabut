@@ -1,0 +1,113 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "claim_id": "A",
+        "season": "Kharif 2024",
+        "claimed_acres": 2.1,
+        "claimed_method": "DSR"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.9,
+              29.7
+            ],
+            [
+              76.901,
+              29.7
+            ],
+            [
+              76.901,
+              29.701
+            ],
+            [
+              76.9,
+              29.701
+            ],
+            [
+              76.9,
+              29.7
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "claim_id": "B",
+        "season": "Kharif 2024",
+        "claimed_acres": 2.5,
+        "claimed_method": "DSR"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.901,
+              29.7
+            ],
+            [
+              76.902,
+              29.7
+            ],
+            [
+              76.902,
+              29.701
+            ],
+            [
+              76.901,
+              29.701
+            ],
+            [
+              76.901,
+              29.7
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "claim_id": "C",
+        "season": "Kharif 2024",
+        "claimed_acres": 0.2,
+        "claimed_method": "DSR"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.9003,
+              29.7013
+            ],
+            [
+              76.9006,
+              29.7013
+            ],
+            [
+              76.9006,
+              29.7016
+            ],
+            [
+              76.9003,
+              29.7016
+            ],
+            [
+              76.9003,
+              29.7013
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
