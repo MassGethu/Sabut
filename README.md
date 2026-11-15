@@ -24,6 +24,8 @@ make reset-demo
 
 The command moves the default database into `.sabut/backups/`. The next start opens an empty workspace. A custom `SABUT_DB_PATH` is outside this reset command.
 
+After a frontend change, run `make build` and restart the server, because it reads the page at startup. `make evidence` rebuilds the cached `demo/` files offline and checks them against CONTRACT.md.
+
 For API work without the frontend, run `make install-api PYTHON=python3.14` and then `.venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1`. The API description is in [CONTRACT.md](CONTRACT.md), with [example payloads](examples/api).
 
 ## Verified offline workflow
