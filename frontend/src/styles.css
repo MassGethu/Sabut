@@ -450,3 +450,5 @@ p { margin: 0 0 8px; }
 .prov-more dt { color: var(--muted); font-size: 11px; }
 .prov-more dd { margin: 0; word-break: break-word; }
 .row-sabut td { background: #eef5f0; }
+.compare-real { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line-2); }
+.compare-col .rec-block { margin-top: 10px; }
