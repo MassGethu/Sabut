@@ -74,7 +74,15 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
 
   useEffect(() => {
     if (!host.current || map.current) return;
-    const m = L.map(host.current, { attributionControl: false, scrollWheelZoom: false, zoomSnap: 0.25, maxZoom: 21, minZoom: 4 });
+    const m = L.map(host.current, {
+      attributionControl: false,
+      scrollWheelZoom: false,
+      // The officer view can unmount before Leaflet's zoom transition finishes.
+      zoomAnimation: false,
+      zoomSnap: 0.25,
+      maxZoom: 21,
+      minZoom: 4,
+    });
     m.setView([29.7, 76.9], 15);
     fittedKey.current = ""; // a new map instance has not been fitted to the plots yet
     L.control.scale({ imperial: false, position: "bottomleft", maxWidth: 140 }).addTo(m);
