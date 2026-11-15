@@ -1,0 +1,23 @@
+{
+  "id": 1,
+  "action": "request_field_visit",
+  "reason": "Confirm how rice was established on plot B.",
+  "actor": "Meena",
+  "timestamp": "2026-11-15T10:00:00Z",
+  "overrides_recommendation": false,
+  "recommendation": {
+    "claim_id": "B",
+    "season": "Kharif 2024",
+    "claimed_method": "DSR",
+    "status": "field_check_recommended",
+    "reason_code": "ambiguous_sowing_signal",
+    "reason": "The observations support more than one sowing method.",
+    "next_action": "request_field_visit",
+    "field_question": "Was rice seeded directly into this plot, or were seedlings transplanted?",
+    "rank": 1,
+    "rank_reason": "Priority uses score ambiguity and 2.5 claimed acres.",
+    "claimed_acres": 2.5,
+    "visit_priority": 9000,
+    "in_visit_budget": true
+  }
+}

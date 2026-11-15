@@ -1,0 +1,186 @@
+{
+  "claim_id": "B",
+  "season": "Kharif 2024",
+  "claimed_method": "DSR",
+  "status": "field_check_recommended",
+  "reason_code": "ambiguous_sowing_signal",
+  "reason": "The observations support more than one sowing method.",
+  "next_action": "request_field_visit",
+  "field_question": "Was rice seeded directly into this plot, or were seedlings transplanted?",
+  "rank": 1,
+  "rank_reason": "Priority uses score ambiguity and 2.5 claimed acres.",
+  "claimed_acres": 2.5,
+  "visit_priority": 9000,
+  "in_visit_budget": true,
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          76.901,
+          29.7
+        ],
+        [
+          76.902,
+          29.7
+        ],
+        [
+          76.902,
+          29.701
+        ],
+        [
+          76.901,
+          29.701
+        ],
+        [
+          76.901,
+          29.7
+        ]
+      ]
+    ]
+  },
+  "farmer_name": null,
+  "evidence": {
+    "claim_id": "B",
+    "season": "Kharif 2024",
+    "source_kind": "simulated",
+    "window": {
+      "start": "2024-06-01",
+      "end": "2024-09-05"
+    },
+    "processing_version": "simulation-v1",
+    "units": "dB",
+    "acquisition_settings": {
+      "provider": "workflow simulation"
+    },
+    "observations": [
+      {
+        "acquired_at": "2024-06-09T00:00:00Z",
+        "scene_id": "SIM-B-1",
+        "vv": -11.9,
+        "vh": -18.26666666666667,
+        "valid_fraction": 0.95,
+        "usable": true,
+        "reason": null
+      },
+      {
+        "acquired_at": "2024-06-21T00:00:00Z",
+        "scene_id": "SIM-B-2",
+        "vv": -11.4,
+        "vh": -17.933333333333334,
+        "valid_fraction": 0.95,
+        "usable": true,
+        "reason": null
+      },
+      {
+        "acquired_at": "2024-07-03T00:00:00Z",
+        "scene_id": "SIM-B-3",
+        "vv": -10.9,
+        "vh": -17.6,
+        "valid_fraction": 0.95,
+        "usable": true,
+        "reason": null
+      },
+      {
+        "acquired_at": "2024-07-15T00:00:00Z",
+        "scene_id": "SIM-B-4",
+        "vv": -10.4,
+        "vh": -17.26666666666667,
+        "valid_fraction": 0.95,
+        "usable": true,
+        "reason": null
+      },
+      {
+        "acquired_at": "2024-07-27T00:00:00Z",
+        "scene_id": "SIM-B-5",
+        "vv": -9.9,
+        "vh": -16.933333333333334,
+        "valid_fraction": 0.95,
+        "usable": true,
+        "reason": null
+      },
+      {
+        "acquired_at": "2024-08-08T00:00:00Z",
+        "scene_id": "SIM-B-6",
+        "vv": -9.4,
+        "vh": -16.6,
+        "valid_fraction": 0.95,
+        "usable": true,
+        "reason": null
+      },
+      {
+        "acquired_at": "2024-08-20T00:00:00Z",
+        "scene_id": "SIM-B-7",
+        "vv": -8.9,
+        "vh": -16.26666666666667,
+        "valid_fraction": 0.95,
+        "usable": true,
+        "reason": null
+      },
+      {
+        "acquired_at": "2024-09-01T00:00:00Z",
+        "scene_id": "SIM-B-8",
+        "vv": -8.4,
+        "vh": -15.933333333333335,
+        "valid_fraction": 0.95,
+        "usable": true,
+        "reason": null
+      }
+    ],
+    "usable_count": 8,
+    "gaps": [],
+    "quality_flags": [],
+    "model": {
+      "source_kind": "simulated",
+      "model_version": "simulation-v1",
+      "feature_schema": [],
+      "compatible": true,
+      "compatibility_reason": "Fictional score for the workflow demonstration.",
+      "dsr_score": 0.55
+    }
+  },
+  "real_evidence": null,
+  "model": {
+    "source_kind": "simulated",
+    "model_version": "simulation-v1",
+    "feature_schema": [],
+    "compatible": true,
+    "compatibility_reason": "Fictional score for the workflow demonstration.",
+    "dsr_score": 0.55
+  },
+  "reported_harvest_date": null,
+  "actions": [
+    {
+      "id": 1,
+      "action": "request_field_visit",
+      "reason": "Confirm how rice was established on plot B.",
+      "actor": "Meena",
+      "timestamp": "2026-11-15T10:00:00Z",
+      "overrides_recommendation": false,
+      "recommendation": {
+        "claim_id": "B",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "status": "field_check_recommended",
+        "reason_code": "ambiguous_sowing_signal",
+        "reason": "The observations support more than one sowing method.",
+        "next_action": "request_field_visit",
+        "field_question": "Was rice seeded directly into this plot, or were seedlings transplanted?",
+        "rank": 1,
+        "rank_reason": "Priority uses score ambiguity and 2.5 claimed acres.",
+        "claimed_acres": 2.5,
+        "visit_priority": 9000,
+        "in_visit_budget": true
+      }
+    }
+  ],
+  "review_requests": [
+    {
+      "id": 1,
+      "reason": "I have the sowing records for this plot.",
+      "language": "hi",
+      "timestamp": "2026-11-15T10:00:00Z",
+      "simulated": true
+    }
+  ]
+}
