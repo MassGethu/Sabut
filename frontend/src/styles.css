@@ -746,7 +746,7 @@ summary { align-content: center; }
 .fc-form p { margin: 0; }
 .fc-presets .chip[aria-pressed="true"] { border-color: var(--brand); background: var(--desk-bg); color: var(--brand); }
 
-/* Evidence & results */
+/* Evidence & Results */
 .results-main { max-width: 1040px; }
 .results, .result-group { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .results .table-wrap { max-width: 100%; }

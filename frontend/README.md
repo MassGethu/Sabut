@@ -23,4 +23,4 @@ Set `SABUT_API_URL` to proxy to another API origin. Add `?fixtures` to the URL t
 5. Select **A**, enter a reason and click **Save: Desk review**. Select **B**, enter a reason and click **Save: Request field visit**. To show an override, choose **Request records** on B, enter a reason and click **Save override**. The history shows the **Override** tag and the recommendation snapshot.
 6. Click **Preview farmer card for B →**. Switch between **हिन्दी** and **ਪੰਜਾਬੀ**, pick a preset reason and click **Send request**. Then click **See it in Meena's workspace →**. The request appears highlighted in B's history.
 7. Select **A** and scroll to **Review after harvest**. It shows the applicant-reported harvest date of 8 Oct 2024, 7 real acquisitions before that date, and the scene IDs in the acquisition table.
-8. Open **Evidence & results** to see the real extraction for each claim, the benchmark (or its pending state), the same-budget replay table and the Responsible AI notes.
+8. Open **Evidence & Results** to see the real extraction for each claim, the benchmark (or its pending state), the same-budget replay table and the Responsible AI notes.

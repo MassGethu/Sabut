@@ -446,7 +446,7 @@ export function ResultsView({ claims }: { claims: ClaimDetail[] }) {
     <div className="results">
       <header className="results-head">
         <div>
-          <h1>Evidence and results</h1>
+          <h1>Evidence and Results</h1>
           <p className="muted">
             Review real radar extractions, the Ricemapper benchmark rerun and a labeled simulation of visit allocation.
             Microsoft’s Ricemapper is the classification foundation.

@@ -245,7 +245,7 @@ export default function App() {
             Farmer preview
           </a>
           <a href={viewHref("results")} aria-current={view === "results" ? "page" : undefined}>
-            Evidence &amp; results
+            Evidence &amp; Results
           </a>
         </nav>
         <div className="status-area">
@@ -397,7 +397,17 @@ export default function App() {
 
       {view === "results" ? (
         <main className="results-main" id="main-content" tabIndex={-1}>
-          <ResultsView claims={allClaims} />
+          {queue.length ? (
+            <ResultsView claims={allClaims} />
+          ) : (
+            <div className="results results-empty">
+              <h1>Evidence and Results</h1>
+              <p className="queue-empty">
+                No claims loaded yet. Load the demo batch or upload GeoJSON in the{" "}
+                <a href={viewHref("officer", null)}>Officer workspace</a> to see radar evidence, the benchmark and the visit replay.
+              </p>
+            </div>
+          )}
         </main>
       ) : null}
 
