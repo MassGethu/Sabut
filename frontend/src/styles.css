@@ -954,3 +954,12 @@ summary { align-content: center; }
 .split-table tfoot th, .split-table tfoot td { font-weight: 700; border-bottom: 0; border-top: 1px solid var(--line-2); }
 @media (max-width: 860px) { .split { grid-template-columns: 1fr; } .split-table { min-width: 0; width: 100%; } }
 @media (max-width: 560px) { .split-facts { grid-template-columns: 1fr; gap: 2px; } .split-facts dd { margin-bottom: 6px; } }
+
+/* Desk-review group: solid triangle shows the header is clickable; flips when open */
+.queue-toggle { width: 100%; border-radius: 6px; padding: 4px 6px; }
+.queue-toggle:hover:not(:disabled) { background: #f3f0e8; }
+.queue-caret { width: 12px; height: 8px; margin-left: auto; fill: var(--ink); opacity: 0.7; transition: transform 0.18s ease; }
+.queue-caret.open { transform: rotate(180deg); }
+.queue-toggle:hover:not(:disabled) .queue-caret { opacity: 1; }
+.queue-toggle:disabled .queue-caret { opacity: 0.3; }
+@media (prefers-reduced-motion: reduce) { .queue-caret { transition: none; } }

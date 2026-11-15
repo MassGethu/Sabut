@@ -82,7 +82,10 @@ export function Queue({ items, selectedId, compareIds, justAllocated, loading, o
       {desk.length ? (
         <section className="queue-group" aria-label="Claims ready for desk review">
           <button className="queue-group-head queue-toggle" aria-expanded={deskVisible} onClick={() => setDeskOpen((o) => !o)} disabled={Boolean(q)}>
-            <span aria-hidden>{deskVisible ? "▾" : "▸"}</span> Ready for desk review <span className="queue-count">{desk.length}</span>
+            Ready for desk review <span className="queue-count">{desk.length}</span>
+            <svg className={`queue-caret ${deskVisible ? "open" : ""}`} viewBox="0 0 10 6" aria-hidden="true">
+              <path d="M0 0h10L5 6z" />
+            </svg>
           </button>
           {deskVisible ? (
             <>
