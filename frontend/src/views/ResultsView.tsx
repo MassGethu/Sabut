@@ -124,16 +124,31 @@ function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
         <h3>Ricemapper benchmark · published vs reproduced</h3>
         <Tag tone="info">Public feature table · not Haryana accuracy</Tag>
       </div>
-      <div className="metrics">
-        <Metric label="Published weighted F1" value={published?.value} note={`Paper · ${published?.path}`} />
-        <Metric label="Reproduced weighted F1" value={reproduced?.value} note={`Our rerun · ${reproduced?.path}`} />
-        <Metric label="DSR precision" value={precision?.value} note={precision?.path} />
-        <Metric label="DSR recall" value={recall?.value} note={recall?.path} />
-      </div>
-      {method !== undefined ? (
+      {isObj(report.comparison_on_test) ? (
+        <TrackComparison report={report} />
+      ) : (
+        <div className="metrics">
+          <Metric label="Published weighted F1" value={published?.value} note={`Paper · ${published?.path}`} />
+          <Metric label="Reproduced weighted F1" value={reproduced?.value} note={`Our rerun · ${reproduced?.path}`} />
+          <Metric label="DSR precision" value={precision?.value} note={precision?.path} />
+          <Metric label="DSR recall" value={recall?.value} note={recall?.path} />
+        </div>
+      )}
+      {isObj(report.split) ? (
+        <div className="report-block">
+          <h4>Evaluation method</h4>
+          <JsonTree value={report.split} />
+        </div>
+      ) : method !== undefined ? (
         <div className="report-block">
           <h4>Evaluation method</h4>
           <JsonTree value={method} />
+        </div>
+      ) : null}
+      {Array.isArray(report.protocol_differences) ? (
+        <div className="report-block">
+          <h4>Differences from the published protocol</h4>
+          <JsonTree value={report.protocol_differences} />
         </div>
       ) : null}
       {limitations !== undefined ? (
@@ -147,6 +162,76 @@ function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
         <JsonTree value={report} />
       </details>
     </section>
+  );
+}
+
+const TRACK_LABEL: Record<string, string> = {
+  hc_p_lgb: "Named released configuration · HC+P LightGBM",
+  hc_lgb: "Handcrafted-only LightGBM (Sabūt track)",
+  radar_rule: "Simple radar-rule baseline",
+};
+
+/** Published reference beside the reproduced tracks, all on the same held-out test split. */
+function TrackComparison({ report }: { report: Record<string, Json> }) {
+  const comparison = report.comparison_on_test as Record<string, Json>;
+  const paper = isObj(report.paper) ? report.paper : null;
+  const publishedText =
+    paper && typeof paper.published_reference === "string" ? paper.published_reference : null;
+  const tracks = Array.isArray(report.tracks) ? report.tracks.filter(isObj) : [];
+  const trackInfo = (name: string) => tracks.find((t) => t.name === name);
+  return (
+    <>
+      <div className="published-ref">
+        <span className="eyebrow">Published (paper)</span>
+        <strong className="big">≈ 0.80 weighted F1</strong>
+        <p className="small">
+          {publishedText ?? "Published sowing result for specific feature combinations."}
+          {paper && typeof paper.url === "string" ? (
+            <>
+              {" "}
+              <span className="mono">{String(paper.arxiv ?? paper.url)}</span>
+            </>
+          ) : null}
+        </p>
+      </div>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Reproduced on the public release (test split)</th>
+              <th className="num">Weighted F1</th>
+              <th className="num">DSR precision</th>
+              <th className="num">DSR recall</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(comparison).map(([name, m]) => {
+              if (!isObj(m)) return null;
+              const info = trackInfo(name);
+              return (
+                <tr key={name} className={name === "hc_lgb" ? "row-sabut" : ""}>
+                  <td>
+                    <strong>{TRACK_LABEL[name] ?? name.replaceAll("_", " ")}</strong>
+                    {info && typeof info.description === "string" ? (
+                      <div className="muted small">{info.description}</div>
+                    ) : null}
+                  </td>
+                  <td className="num">{fmtVal(m.weighted_f1)}</td>
+                  <td className="num">{fmtVal(m.dsr_precision)}</td>
+                  <td className="num">{fmtVal(m.dsr_recall)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {tracks.length ? (
+        <details className="report-raw">
+          <summary>Per-track detail: features, confusion matrices, hyperparameters</summary>
+          <JsonTree value={tracks} />
+        </details>
+      ) : null}
+    </>
   );
 }
 
