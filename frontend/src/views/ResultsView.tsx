@@ -9,6 +9,29 @@ import { SignalChart } from "../components/SignalChart";
 type Json = unknown;
 const isObj = (v: Json): v is Record<string, Json> => !!v && typeof v === "object" && !Array.isArray(v);
 
+/** Find the first value whose key matches one of the candidates (case-insensitive), searching nested objects. */
+function pickPath(
+  obj: Json,
+  keys: string[],
+  depth = 3,
+  path = "",
+  skip: RegExp | null = null,
+): { path: string; value: Json } | undefined {
+  if (!isObj(obj) || depth < 0) return undefined;
+  const lower = keys.map((k) => k.toLowerCase());
+  for (const [k, v] of Object.entries(obj)) if (lower.includes(k.toLowerCase())) return { path: path + k, value: v };
+  for (const [k, v] of Object.entries(obj)) {
+    if (skip && skip.test(k)) continue;
+    const found = pickPath(v, keys, depth - 1, `${path}${k}.`, skip);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
+function pick(obj: Json, keys: string[], depth = 3): Json {
+  return pickPath(obj, keys, depth)?.value;
+}
+
 function fmtVal(v: Json): string {
   if (typeof v === "number") return Math.abs(v) <= 1 && !Number.isInteger(v) ? fmtNum(v, 4) : fmtNum(v, 3);
   if (typeof v === "string") return v;
@@ -76,64 +99,62 @@ function Metric({ label, value, note }: { label: string; value: Json; note?: str
   );
 }
 
-const BENCHMARK_TRACKS = [
-  ["hc_p_lgb", "Handcrafted + Presto LightGBM"],
-  ["hc_lgb", "Handcrafted-only LightGBM"],
-  ["radar_rule", "Radar-rule baseline"],
-] as const;
+function scalar(found: { path: string; value: Json } | undefined) {
+  if (!found) return undefined;
+  if (isObj(found.value)) {
+    const inner = pickPath(found.value, ["weighted_f1", "f1", "value"], 1, `${found.path}.`);
+    if (inner && !isObj(inner.value)) return inner;
+    return undefined;
+  }
+  return found;
+}
 
 function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
-  const paper = isObj(report.paper) ? report.paper : {};
-  const comparison = isObj(report.comparison_on_test) ? report.comparison_on_test : {};
-  const split = isObj(report.split) ? report.split : {};
-  const rows = isObj(split.rows) ? split.rows : {};
+  const published = scalar(pickPath(report, ["published_weighted_f1", "paper_weighted_f1", "published"]));
+  // Our own rerun: never read from the paper's numbers or a baseline.
+  const notOurs = /paper|publish|baseline|rule/i;
+  const reproduced = scalar(pickPath(report, ["reproduced_weighted_f1", "weighted_f1"], 3, "", notOurs));
+  const precision = scalar(pickPath(report, ["dsr_precision", "precision_dsr"], 3, "", notOurs));
+  const recall = scalar(pickPath(report, ["dsr_recall", "recall_dsr"], 3, "", notOurs));
+  const limitations = pick(report, ["limitations", "known_limitations"]);
+  const method = pick(report, ["holdout", "holdout_method", "split", "evaluation_method"]);
   return (
     <section className="panel">
       <div className="panel-head">
         <h3>Ricemapper benchmark · published vs reproduced</h3>
-        <Tag tone="info">Public Punjab feature table</Tag>
+        <Tag tone="info">Public feature table · not Haryana accuracy</Tag>
       </div>
-      {typeof paper.published_weighted_f1 === "number" ? (
-        <p className="small">
-          <strong>Published weighted F1 {fmtVal(paper.published_weighted_f1)}</strong>
-          {" · "}{fmtVal(paper.published_configuration)}
-        </p>
+      {isObj(report.comparison_on_test) ? (
+        <TrackComparison report={report} />
+      ) : (
+        <div className="metrics">
+          <Metric label="Published weighted F1" value={published?.value} note={`Paper · ${published?.path}`} />
+          <Metric label="Reproduced weighted F1" value={reproduced?.value} note={`Our rerun · ${reproduced?.path}`} />
+          <Metric label="DSR precision" value={precision?.value} note={precision?.path} />
+          <Metric label="DSR recall" value={recall?.value} note={recall?.path} />
+        </div>
+      )}
+      {isObj(report.split) ? (
+        <div className="report-block">
+          <h4>Evaluation method</h4>
+          <JsonTree value={report.split} />
+        </div>
+      ) : method !== undefined ? (
+        <div className="report-block">
+          <h4>Evaluation method</h4>
+          <JsonTree value={method} />
+        </div>
       ) : null}
-      <div className="table-wrap">
-        <table aria-label="Ricemapper rerun metrics on the held-out test set">
-          <thead>
-            <tr>
-              <th>Rerun track</th>
-              <th className="num">Weighted F1</th>
-              <th className="num">DSR precision</th>
-              <th className="num">DSR recall</th>
-            </tr>
-          </thead>
-          <tbody>
-            {BENCHMARK_TRACKS.map(([key, label]) => {
-              const track = comparison[key];
-              return isObj(track) ? (
-                <tr key={key}>
-                  <td>{label}</td>
-                  <td className="num">{fmtVal(track.weighted_f1)}</td>
-                  <td className="num">{fmtVal(track.dsr_precision)}</td>
-                  <td className="num">{fmtVal(track.dsr_recall)}</td>
-                </tr>
-              ) : null;
-            })}
-          </tbody>
-        </table>
-      </div>
-      {typeof rows.test === "number" ? (
-        <p className="small muted">
-          All three reruns used the same stratified holdout of {rows.test} test rows, with seed {fmtVal(split.seed)}.
-          The release lacks geographic identifiers.
-        </p>
+      {Array.isArray(report.protocol_differences) ? (
+        <div className="report-block">
+          <h4>Differences from the published protocol</h4>
+          <JsonTree value={report.protocol_differences} />
+        </div>
       ) : null}
-      {report.limitations !== undefined ? (
+      {limitations !== undefined ? (
         <div className="report-block limits">
           <h4>Limitations</h4>
-          <JsonTree value={report.limitations} />
+          <JsonTree value={limitations} />
         </div>
       ) : null}
       <details className="report-raw">
@@ -141,6 +162,76 @@ function BenchmarkPanel({ report }: { report: Record<string, Json> }) {
         <JsonTree value={report} />
       </details>
     </section>
+  );
+}
+
+const TRACK_LABEL: Record<string, string> = {
+  hc_p_lgb: "Named released configuration · HC+P LightGBM",
+  hc_lgb: "Handcrafted-only LightGBM (Sabūt track)",
+  radar_rule: "Simple radar-rule baseline",
+};
+
+/** Published reference beside the reproduced tracks, all on the same held-out test split. */
+function TrackComparison({ report }: { report: Record<string, Json> }) {
+  const comparison = report.comparison_on_test as Record<string, Json>;
+  const paper = isObj(report.paper) ? report.paper : null;
+  const publishedScore = typeof paper?.published_weighted_f1 === "number" ? fmtVal(paper.published_weighted_f1) : "≈ 0.80";
+  const publishedText = typeof paper?.published_configuration === "string" ? paper.published_configuration : null;
+  const tracks = Array.isArray(report.tracks) ? report.tracks.filter(isObj) : [];
+  const trackInfo = (name: string) => tracks.find((t) => t.name === name);
+  return (
+    <>
+      <div className="published-ref">
+        <span className="eyebrow">Published (paper)</span>
+        <strong className="big">{publishedScore} weighted F1</strong>
+        <p className="small">
+          {publishedText ?? "Published sowing result for specific feature combinations."}
+          {paper && typeof paper.url === "string" ? (
+            <>
+              {" "}
+              <span className="mono">{String(paper.arxiv ?? paper.url)}</span>
+            </>
+          ) : null}
+        </p>
+      </div>
+      <div className="table-wrap">
+        <table aria-label="Ricemapper rerun metrics on the held-out test set">
+          <thead>
+            <tr>
+              <th>Reproduced on the public release (test split)</th>
+              <th className="num">Weighted F1</th>
+              <th className="num">DSR precision</th>
+              <th className="num">DSR recall</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(comparison).map(([name, m]) => {
+              if (!isObj(m)) return null;
+              const info = trackInfo(name);
+              return (
+                <tr key={name} className={name === "hc_lgb" ? "row-sabut" : ""}>
+                  <td>
+                    <strong>{TRACK_LABEL[name] ?? name.replaceAll("_", " ")}</strong>
+                    {info && typeof info.description === "string" ? (
+                      <div className="muted small">{info.description}</div>
+                    ) : null}
+                  </td>
+                  <td className="num">{fmtVal(m.weighted_f1)}</td>
+                  <td className="num">{fmtVal(m.dsr_precision)}</td>
+                  <td className="num">{fmtVal(m.dsr_recall)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {tracks.length ? (
+        <details className="report-raw">
+          <summary>Per-track detail: features, confusion matrices, hyperparameters</summary>
+          <JsonTree value={tracks} />
+        </details>
+      ) : null}
+    </>
   );
 }
 
@@ -163,7 +254,7 @@ function ReplayTable({ report }: { report: Record<string, Json> }) {
         <Metric label="Outcome source" value={report.outcome_source} />
       </div>
       <div className="table-wrap">
-        <table>
+        <table aria-label="Simulated outcomes at the same visit budget">
           <thead>
             <tr>
               <th>Method</th>
