@@ -453,7 +453,7 @@ OUTCOME_DEFINITIONS = {
 def build_replay() -> tuple[dict, dict, dict]:
     rng = random.Random(REPLAY_SEED)
     acres_choices = [0.8, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.5]
-    # (score, acres) pairs. Ties: R07/R08 share u and acres; R11/R12 share u*acres via different combos.
+    # (score, acres) pairs. Priority ties: R07/R08 (u=0.8, 2 ac) and R06/R11/R12 (u=0.9, 2 ac).
     spec = [
         (0.52, 3.0), (0.48, 1.0), (0.60, 5.0), (0.35, 2.5), (0.70, 6.5), (0.45, 2.0), (0.40, 2.0),
         (0.60, 2.0), (0.30, 4.0), (0.65, 1.5), (0.55, 2.0), (0.45, 2.0), (0.92, 3.0), (0.88, 2.5),
@@ -531,6 +531,53 @@ def build_replay() -> tuple[dict, dict, dict]:
     return claims_fc, evidence, outcomes_doc
 
 
+RECORD_FIELDS = ("claim_id", "season", "geometry_hash", "source_kind", "window", "processing_version", "units",
+                 "acquisition_settings", "observations", "usable_count", "gaps", "quality_flags")
+OBS_FIELDS = ("acquired_at", "scene_id", "vv", "vh", "valid_fraction", "usable", "reason")
+MODEL_FIELDS = ("source_kind", "model_version", "feature_schema", "compatible", "compatibility_reason", "dsr_score")
+
+
+def validate_artifact(doc: dict, claims_fc: dict, source_kind: str, name: str) -> list[str]:
+    """Check an evidence artifact against the CONTRACT.md evidence handoff shape."""
+    errs = []
+    if doc.get("schema_version") != SCHEMA_VERSION:
+        errs.append(f"{name}: schema_version must be {SCHEMA_VERSION}")
+    hashes = {(f["properties"]["claim_id"], f["properties"]["season"]): geometry_hash(f["geometry"])
+              for f in claims_fc["features"]}
+    for f in claims_fc["features"]:
+        p = f["properties"]
+        if p.get("claimed_method") not in ("DSR", "PTR"):
+            errs.append(f"{name}: {p.get('claim_id')} claimed_method invalid")
+        acres = p.get("claimed_acres")
+        if not isinstance(acres, (int, float)) or not math.isfinite(acres) or acres <= 0:
+            errs.append(f"{name}: {p.get('claim_id')} needs finite positive claimed_acres")
+    for r in doc.get("records", []):
+        cid = r.get("claim_id")
+        errs += [f"{name}:{cid} missing {k}" for k in RECORD_FIELDS if k not in r]
+        if r.get("source_kind") != source_kind:
+            errs.append(f"{name}:{cid} source_kind {r.get('source_kind')} != {source_kind}")
+        if hashes.get((cid, r.get("season"))) != r.get("geometry_hash"):
+            errs.append(f"{name}:{cid} geometry_hash does not match the claims file")
+        usable = set()
+        for o in r.get("observations", []):
+            errs += [f"{name}:{cid} observation missing {k}" for k in OBS_FIELDS if k not in o]
+            if not str(o.get("acquired_at", "")).endswith("Z"):
+                errs.append(f"{name}:{cid} acquired_at must be ISO 8601 UTC")
+            vf = o.get("valid_fraction")
+            if vf is not None and not 0 <= vf <= 1:
+                errs.append(f"{name}:{cid} valid_fraction out of range")
+            if o.get("usable"):
+                usable.add(o["acquired_at"][:10])
+        if r.get("usable_count") != len(usable):
+            errs.append(f"{name}:{cid} usable_count {r.get('usable_count')} != {len(usable)} distinct usable dates")
+        m = r.get("model")
+        if m is not None:
+            errs += [f"{name}:{cid} model missing {k}" for k in MODEL_FIELDS if k not in m]
+            if m.get("compatible") is not True and m.get("dsr_score") is not None:
+                errs.append(f"{name}:{cid} emits a score without verified compatibility")
+    return errs
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--offline", action="store_true",
@@ -557,7 +604,21 @@ def main() -> int:
     write_json(DEMO / "replay-outcomes.json", ro)
     counts = {k: list(ro["outcomes"].values()).count(k) for k in OUTCOME_DEFINITIONS}
     print(f"wrote demo/ artifacts; replay outcomes {counts}")
-    return 0
+
+    featured_fc = {"type": "FeatureCollection", "features": claims}
+    real = json.loads((DEMO / "evidence.json").read_text(encoding="utf-8"))
+    errors = (validate_artifact(real, featured_fc, "sentinel1_real", "evidence.json")
+              + validate_artifact(build_simulation(claims), featured_fc, "simulated", "workflow-simulation.json")
+              + validate_artifact(re_, rc, "simulated", "replay-evidence.json"))
+    missing = {r["claim_id"] for r in re_["records"]} - set(ro["outcomes"])
+    if missing:
+        errors.append(f"replay-outcomes.json: missing outcomes for {sorted(missing)}")
+    if manifest and any(r["model"]["model_version"] != manifest["model_version"] for r in real["records"]):
+        errors.append("evidence.json: model_version is stale; rerun without --offline after the benchmark")
+    for e in errors:
+        print(f"CONTRACT CHECK FAILED: {e}", file=sys.stderr)
+    print("contract check: " + ("FAILED" if errors else "passed"))
+    return 1 if errors else 0
 
 
 if __name__ == "__main__":
