@@ -122,23 +122,36 @@ def _failed(code, reason, next_action="request_records"):
 
 def assess_observations(record, settings):
     result = {**record, "usable_count": 0, "observations": [], "gaps": []}
+    producer_gate = record.get("quality_gate")
+    producer_gate = producer_gate if isinstance(producer_gate, dict) else {}
     gate = {
+        **producer_gate,
         "min_usable_dates": settings.min_usable_dates,
         "min_valid_fraction": settings.min_valid_fraction,
         "max_gap_days": settings.max_gap_days,
+        "longest_gap_days": None,
         "failed_criterion": None,
     }
     result["quality_gate"] = gate
     flags = record.get("quality_flags")
     flags = flags if isinstance(flags, list) else []
     boundary_codes = {"invalid_boundary", "boundary_unusable", "plot_too_small", "boundary_too_small"}
-    codes = [flag.get("code") if isinstance(flag, dict) else flag for flag in flags]
-    boundary_failed = record.get("boundary_usable") is False or any(
-        isinstance(code, str) and code in boundary_codes for code in codes
-    )
+    boundary_flags = []
+    for flag in flags:
+        code = flag.get("code") if isinstance(flag, dict) else flag
+        if isinstance(code, str) and code in boundary_codes:
+            boundary_flags.append(flag)
     failure = None
-    if boundary_failed:
-        failure = _failed("boundary_quality", "The cached extraction flags this plot boundary as unsuitable. Supply a corrected plot boundary.", "request_boundary_correction")
+    if record.get("boundary_usable") is False or boundary_flags:
+        detail = next(
+            (flag["detail"] for flag in boundary_flags if isinstance(flag, dict) and isinstance(flag.get("detail"), str) and flag["detail"].strip()),
+            None,
+        )
+        failure = _failed(
+            "boundary_quality",
+            detail or "The cached extraction flags this plot boundary as unsuitable. Supply a corrected plot boundary.",
+            "request_boundary_correction",
+        )
     rows = record.get("observations")
     rows = rows if isinstance(rows, list) else []
     try:
@@ -152,7 +165,7 @@ def assess_observations(record, settings):
             dict(row, usable=False, reason="No valid evidence window for this acquisition.")
             for row in rows if isinstance(row, dict)
         ]
-        gate["failed_criterion"] = failure["criterion"]
+        gate.update(failed_criterion=failure["criterion"], passes=False)
         return result, failure
 
     usable_dates = set()
@@ -167,15 +180,26 @@ def assess_observations(record, settings):
         )
     result["usable_count"] = len(usable_dates)
     edges = [start, *sorted(usable_dates), end]
+    producer_gaps = {
+        (gap["start"], gap["end"]): gap for gap in record.get("gaps") or []
+        if isinstance(gap, dict) and isinstance(gap.get("start"), str) and isinstance(gap.get("end"), str)
+    }
+    longest_gap = 0
     over_limit = []
     for previous, following in zip(edges, edges[1:]):
         days = (following - previous).days
+        longest_gap = max(longest_gap, days)
+        interval = (previous.isoformat(), following.isoformat())
         if days > settings.max_gap_days:
-            over_limit.append({
-                "start": previous.isoformat(), "end": following.isoformat(),
+            gap = {
+                "start": interval[0], "end": interval[1], "days": days,
                 "reason": f"{days} days without a usable acquisition between these dates.",
-            })
-    result["gaps"] = over_limit or record.get("gaps") or []
+            }
+            over_limit.append(gap)
+            result["gaps"].append(gap)
+        elif interval in producer_gaps:
+            result["gaps"].append(producer_gaps[interval])
+    gate["longest_gap_days"] = longest_gap
     if not failure and len(usable_dates) < settings.min_usable_dates:
         failure = _failed(
             "insufficient_usable_dates",
@@ -188,6 +212,5 @@ def assess_observations(record, settings):
             "observation_gap_too_long",
             f"The evidence gap from {gap['start']} to {gap['end']} exceeds {settings.max_gap_days} days. Request dated sowing records.",
         )
-    if failure:
-        gate["failed_criterion"] = failure["criterion"]
+    gate.update(failed_criterion=failure["criterion"] if failure else None, passes=failure is None)
     return result, failure

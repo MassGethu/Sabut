@@ -137,6 +137,8 @@ def _evaluate(claim, record, manifest, settings):
 
     ptr_max, dsr_min = thresholds
     score = model["dsr_score"]
+    question = record.get("field_question")
+    question = question.strip() if isinstance(question, str) and question.strip() else FIELD_QUESTION
     supported = "DSR" if score >= dsr_min else "PTR" if score <= ptr_max else None
     if supported == claim["claimed_method"]:
         recommendation = _recommendation(
@@ -145,9 +147,9 @@ def _evaluate(claim, record, manifest, settings):
             "desk_review",
         )
     elif supported is None:
-        recommendation = _visit("ambiguous_sowing_signal", "The model score is in the review range for both sowing methods.")
+        recommendation = _visit("ambiguous_sowing_signal", "The model score is in the review range for both sowing methods.", question)
     else:
-        recommendation = _visit("score_disagrees_with_claim", f"The model score supports {supported}. The submitted claim says {claim['claimed_method']}.")
+        recommendation = _visit("score_disagrees_with_claim", f"The model score supports {supported}. The submitted claim says {claim['claimed_method']}.", question)
     return recommendation, evidence, model
 
 

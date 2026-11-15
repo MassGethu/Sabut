@@ -74,7 +74,7 @@ def _outcomes(path):
     for label in outcomes.values():
         if label not in ("resolved", "corrected", "unresolved"):
             raise ValueError(f"Invalid simulated outcome: {label!r}")
-    return outcomes
+    return data
 
 
 def _claims(path, database):
@@ -95,7 +95,7 @@ def main():
     parser.add_argument("--evidence", type=Path, default=ROOT / "demo" / "replay-evidence.json")
     parser.add_argument("--outcomes", type=Path, default=ROOT / "demo" / "replay-outcomes.json")
     parser.add_argument("--output", type=Path, default=ROOT / "reports" / "replay.json")
-    parser.add_argument("--budget", type=int, default=1)
+    parser.add_argument("--budget", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
     if args.budget < 0:
@@ -111,8 +111,11 @@ def main():
         if any(catalog.for_claim(claim)[1] is None for claim in claims):
             raise ValueError("Every replay claim needs a matching claim ID, season and geometry hash in the evidence.")
         ids, selections = select_visits(claims, catalog, args.budget, args.seed, settings)
-        outcomes = _outcomes(args.outcomes)
-        report = compare(ids, selections, outcomes, args.budget, args.seed, settings)
+        outcome_data = _outcomes(args.outcomes)
+        report = compare(ids, selections, outcome_data["outcomes"], args.budget, args.seed, settings)
+        report["claim_count"] = len(claims)
+        report["outcome_generation_seed"] = outcome_data.get("seed")
+        report["outcome_generation_assumption"] = outcome_data.get("generation_assumption")
     except (OSError, ValueError, KeyError, TypeError) as exc:
         parser.exit(1, f"Replay failed: {exc}\n")
     args.output.parent.mkdir(parents=True, exist_ok=True)

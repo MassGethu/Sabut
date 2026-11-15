@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 import sqlite3
 
-from .geometry import finite_number, geometry_hash, validate_geometry
+from .geometry import finite_number, validate_geometry
+from .identity import geometry_hash
 
 
 def utc_timestamp() -> str:

@@ -8,9 +8,7 @@
         "season": "Kharif 2024",
         "claimed_method": "DSR",
         "claimed_acres": 2.5,
-        "farmer_name": "Ramesh Kumar (fictional)",
-        "reported_harvest_date": "2024-10-08",
-        "reported_harvest_date_source": "applicant_reported_fictional"
+        "farmer_name": "Ramesh Kumar"
       },
       "geometry": {
         "type": "Polygon",
@@ -47,7 +45,7 @@
         "season": "Kharif 2024",
         "claimed_method": "DSR",
         "claimed_acres": 2.5,
-        "farmer_name": "Sunita Devi (fictional)"
+        "farmer_name": "Sunita Devi"
       },
       "geometry": {
         "type": "Polygon",
@@ -84,7 +82,7 @@
         "season": "Kharif 2024",
         "claimed_method": "DSR",
         "claimed_acres": 0.4,
-        "farmer_name": "Gurpreet Singh (fictional)"
+        "farmer_name": "Gurpreet Singh"
       },
       "geometry": {
         "type": "Polygon",
@@ -109,6 +107,45 @@
             [
               76.926097,
               29.657632
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "claim_id": "ARCHIVE",
+        "season": "Kharif 2024",
+        "claimed_method": "DSR",
+        "claimed_acres": 2.5,
+        "farmer_name": "Harjit Singh",
+        "reported_harvest_date": "2024-10-08",
+        "reported_harvest_date_source": "applicant_reported_fictional"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.931316,
+              29.65503
+            ],
+            [
+              76.932348,
+              29.655014
+            ],
+            [
+              76.932366,
+              29.655916
+            ],
+            [
+              76.931333,
+              29.655932
+            ],
+            [
+              76.931316,
+              29.65503
             ]
           ]
         ]

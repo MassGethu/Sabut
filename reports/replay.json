@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "outcome_source": "simulated",
+  "budget": 5,
+  "seed": 42,
+  "candidate_pool_count": 17,
+  "candidate_claim_ids": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "R11",
+    "R12",
+    "R15",
+    "R18",
+    "R20",
+    "R21",
+    "R22"
+  ],
+  "candidate_pool": "Claims eligible for a field visit under the API policy, before applying the visit budget.",
+  "random_order": "Python seeded sampling without replacement from claim IDs sorted in ascending order.",
+  "score_only_order": "Descending score ambiguity, then ascending claim ID. Unscored visit candidates come last by claim ID.",
+  "acreage_multiplier": 4000.0,
+  "methods": {
+    "sabut": {
+      "selected_claim_ids": [
+        "R03",
+        "R05",
+        "R01",
+        "R09",
+        "R06"
+      ],
+      "selected_count": 5,
+      "resolved": 1,
+      "corrected": 2,
+      "resolved_or_corrected": 3,
+      "denominator": 5
+    },
+    "seeded_random": {
+      "selected_claim_ids": [
+        "R04",
+        "R01",
+        "R12",
+        "R05",
+        "R22"
+      ],
+      "selected_count": 5,
+      "resolved": 3,
+      "corrected": 0,
+      "resolved_or_corrected": 3,
+      "denominator": 5
+    },
+    "score_only": {
+      "selected_claim_ids": [
+        "R20",
+        "R01",
+        "R02",
+        "R06",
+        "R11"
+      ],
+      "selected_count": 5,
+      "resolved": 3,
+      "corrected": 1,
+      "resolved_or_corrected": 4,
+      "denominator": 5
+    }
+  },
+  "claim_count": 25,
+  "outcome_generation_seed": 7,
+  "outcome_generation_assumption": "Latent true method drawn with P(DSR) = simulated score (0.5 when unscored); 15% of visits arrive after harvest and are unresolved regardless of score. Treating the score as a probability is an assumption, not demonstrated calibration, and it favours ambiguity-ordered policies by construction."
+}

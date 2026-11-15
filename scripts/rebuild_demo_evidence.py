@@ -19,7 +19,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 import random
@@ -28,6 +27,11 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+# Support execution from the repository root as a script.
+if not __package__:
+    sys.path.insert(0, str(ROOT))
+from backend.identity import geometry_hash
+
 DEMO = ROOT / "demo"
 REPORTS = ROOT / "reports"
 
@@ -56,33 +60,16 @@ REPLAY_SEED = 7
 # Fictional claims drawn as UTM rectangles on farmland west of Karnal city, Haryana.
 # Boundaries were placed on a Sentinel-2 L2A true-colour chip; they are not surveyed parcels.
 FEATURED = [
-    {"claim_id": "A", "farmer_name": "Ramesh Kumar (fictional)", "claimed_method": "DSR",
-     "claimed_acres": 2.5, "utm": (686730, 3282120, 686830, 3282220),
-     "reported_harvest_date": "2024-10-08"},
-    {"claim_id": "B", "farmer_name": "Sunita Devi (fictional)", "claimed_method": "DSR",
+    {"claim_id": "A", "farmer_name": "Ramesh Kumar", "claimed_method": "DSR",
+     "claimed_acres": 2.5, "utm": (686730, 3282120, 686830, 3282220)},
+    {"claim_id": "B", "farmer_name": "Sunita Devi", "claimed_method": "DSR",
      "claimed_acres": 2.5, "utm": (686830, 3282120, 686930, 3282220)},
-    {"claim_id": "C", "farmer_name": "Gurpreet Singh (fictional)", "claimed_method": "DSR",
+    {"claim_id": "C", "farmer_name": "Gurpreet Singh", "claimed_method": "DSR",
      "claimed_acres": 0.4, "utm": (686420, 3282400, 686460, 3282440)},
+    {"claim_id": "ARCHIVE", "farmer_name": "Harjit Singh", "claimed_method": "DSR",
+     "claimed_acres": 2.5, "utm": (686930, 3282120, 687030, 3282220),
+     "reported_harvest_date": "2024-10-08"},
 ]
-
-
-# --- geometry identity (must match backend/geometry.py on build/core) -------------------
-
-def _normalize_numbers(value):
-    if isinstance(value, dict):
-        return {key: _normalize_numbers(item) for key, item in value.items()}
-    if isinstance(value, list):
-        return [_normalize_numbers(item) for item in value]
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    return value
-
-
-def geometry_hash(geometry: dict) -> str:
-    payload = json.dumps(
-        _normalize_numbers(geometry), sort_keys=True, separators=(",", ":"), allow_nan=False
-    )
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def utm_rect_to_geometry(x0, y0, x1, y1) -> dict:
@@ -342,10 +329,11 @@ def extract_real(claims: list[dict], manifest: dict | None) -> dict:
         }
         if harvest:
             hd = date.fromisoformat(harvest)
+            before_harvest = [x for x in usable_days if x < hd]
             record["retrospective"] = {
                 "reported_harvest_date": harvest, "reported_harvest_date_source": "applicant_reported_fictional",
-                "observations_before_reported_harvest": sum(1 for x in usable_days if x < hd),
-                "last_observation_before_harvest": iso_day(max(x for x in usable_days if x < hd)) if usable_days else None,
+                "observations_before_reported_harvest": len(set(before_harvest)),
+                "last_observation_before_harvest": iso_day(max(before_harvest)) if before_harvest else None,
                 "note": "The harvest date is fictional and applicant-reported. Acquisition dates and scene IDs are real.",
             }
         records.append(record)
@@ -550,7 +538,6 @@ def main() -> int:
     args = parser.parse_args()
 
     claims = featured_claims()
-    write_json(DEMO / "claims.geojson", {"type": "FeatureCollection", "features": claims})
     manifest = load_manifest()
     if not args.offline:
         evidence = extract_real(claims, manifest)
@@ -562,6 +549,7 @@ def main() -> int:
     elif not (DEMO / "evidence.json").exists():
         print("demo/evidence.json is missing; run without --offline to extract it.", file=sys.stderr)
         return 1
+    write_json(DEMO / "claims.geojson", {"type": "FeatureCollection", "features": claims})
     write_json(DEMO / "workflow-simulation.json", build_simulation(claims))
     rc, re_, ro = build_replay()
     write_json(DEMO / "replay-claims.geojson", rc)
