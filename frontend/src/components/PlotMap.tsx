@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { actionLabel, statusLabel } from "../i18n/labels";
-import { fmtNum } from "../format";
+import { fmtDate, fmtNum } from "../format";
+import { seasonColor, seasonGradientCss, vvAt, type SeasonPoint } from "../season";
 import { centroid, depotFor, planRoute, type LatLng, type VisitRoute } from "../route";
 
 export interface MapPlot {
@@ -13,6 +14,9 @@ export interface MapPlot {
   rank: number | null;
   acres: number | null;
   nextAction: string;
+  /** Usable VV observations from the decision evidence, for the season view. */
+  season?: SeasonPoint[];
+  seasonSource?: string;
 }
 
 interface Props {
@@ -59,6 +63,12 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
   const [hover, setHover] = useState<MapPlot | null>(null);
   const [cursor, setCursor] = useState<L.LatLng | null>(null);
   const [mapVersion, setMapVersion] = useState(0);
+  // Season view: off by default; while on, plot fills follow VV backscatter at seasonT.
+  const [seasonOn, setSeasonOn] = useState(false);
+  const [seasonT, setSeasonT] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const layersById = useRef(new Map<string, { gj: L.GeoJSON; plot: MapPlot; base: L.PathOptions }>());
+  const restyle = useRef<(id: string) => L.PathOptions | null>(() => null);
 
   useEffect(() => {
     if (!host.current || map.current) return;
@@ -114,6 +124,7 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
     const group = plotLayer.current;
     if (!m || !group) return;
     group.clearLayers();
+    layersById.current.clear();
     // Desk-review plots are drawn first and muted so the few cases needing action stay readable on top.
     const needsAction = (p: MapPlot) => p.status !== "ready_for_desk_review";
     const ordered = [...plots].sort((a, b) => Number(needsAction(a)) - Number(needsAction(b)));
@@ -140,7 +151,7 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
         setHover(p);
       });
       gj.on("mouseout", () => {
-        gj.setStyle(base);
+        gj.setStyle(restyle.current(p.id) ?? base);
         setHover((h) => (h?.id === p.id ? null : h));
       });
       const visit = p.inBudget ? `<span class="map-label-visit">Visit #${p.rank}</span>` : "";
@@ -150,6 +161,7 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
         className: `map-label ${selected ? "map-label-selected" : ""}`,
       });
       gj.addTo(group);
+      layersById.current.set(p.id, { gj, plot: p, base });
     }
     const key = plots.map((p) => p.id).sort().join("|");
     if (plots.length && key !== fittedKey.current) {
@@ -158,6 +170,65 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
       m.fitBounds(group.getBounds(), { padding: [48, 48], maxZoom: 18 });
     }
   }, [plots, selectedId, compareIds, mapVersion]);
+
+  // Season window spans every plot's observations.
+  const seasonRange = useMemo(() => {
+    const ts = plots.flatMap((p) => (p.season ?? []).map((o) => o.t));
+    return ts.length ? { start: Math.min(...ts), end: Math.max(...ts) } : null;
+  }, [plots]);
+  const seasonSources = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of plots) if (p.season?.length) counts.set(p.seasonSource ?? "unknown", (counts.get(p.seasonSource ?? "unknown") ?? 0) + 1);
+    return [...counts.entries()];
+  }, [plots]);
+
+  useEffect(() => {
+    if (seasonRange && (seasonT < seasonRange.start || seasonT > seasonRange.end)) setSeasonT(seasonRange.start);
+  }, [seasonRange, seasonT]);
+
+  // Restyle existing layers (no redraw). Runs after the plot effect above, so new layers pick it up too.
+  useEffect(() => {
+    restyle.current = (id) => {
+      if (!seasonOn) return null;
+      const entry = layersById.current.get(id);
+      if (!entry) return null;
+      const vv = vvAt(entry.plot.season ?? [], seasonT);
+      const fill = seasonColor(vv);
+      return { ...entry.base, fillColor: fill, fillOpacity: vv === null ? 0.35 : 0.85, color: entry.base.weight! > 2 ? entry.base.color : fill };
+    };
+    for (const [id, { gj, base }] of layersById.current) gj.setStyle(restyle.current(id) ?? base);
+  }, [seasonOn, seasonT, plots, selectedId, compareIds, mapVersion]);
+
+  // Play: sweep the season in about eight seconds.
+  useEffect(() => {
+    if (!playing || !seasonRange) return;
+    const PLAY_MS = 8000;
+    let raf = 0;
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = now - last;
+      last = now;
+      let done = false;
+      setSeasonT((t) => {
+        const next = t + ((seasonRange.end - seasonRange.start) * dt) / PLAY_MS;
+        if (next >= seasonRange.end) {
+          done = true;
+          return seasonRange.end;
+        }
+        return next;
+      });
+      if (done) setPlaying(false);
+      else raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [playing, seasonRange]);
+
+  function togglePlay() {
+    if (!seasonRange) return;
+    if (!playing && seasonT >= seasonRange.end) setSeasonT(seasonRange.start);
+    setPlaying((v) => !v);
+  }
 
   // Today's visit route: a loop from the (fictional) block office through every budgeted plot.
   const route: VisitRoute | null = useMemo(() => {
@@ -205,6 +276,18 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
         <h2>Claim map</h2>
         <div className="map-tools">
           {tools}
+          {seasonRange ? (
+            <button
+              className={`map-btn ${seasonOn ? "map-btn-on" : ""}`}
+              aria-pressed={seasonOn}
+              onClick={() => {
+                setSeasonOn((v) => !v);
+                setPlaying(false);
+              }}
+            >
+              Season view
+            </button>
+          ) : null}
           <button className="map-btn" onClick={fitAll} disabled={!plots.length}>
             Fit all
           </button>
@@ -246,6 +329,44 @@ export function PlotMap({ plots, selectedId, compareIds, onSelect, tools }: Prop
           <div className="map-empty">Load the demo batch or upload GeoJSON to draw the claimed plots.</div>
         ) : null}
       </div>
+      {seasonOn && seasonRange ? (
+        <div className="season-bar" aria-label="Season view controls">
+          <button className="season-play" onClick={togglePlay} aria-label={playing ? "Pause season" : "Play season"}>
+            {playing ? "❚❚" : "▶"}
+          </button>
+          <div className="season-track">
+            <input
+              type="range"
+              min={seasonRange.start}
+              max={seasonRange.end}
+              step={86_400_000 / 4}
+              value={seasonT}
+              aria-label="Season date"
+              aria-valuetext={fmtDate(new Date(seasonT).toISOString())}
+              onChange={(e) => {
+                setPlaying(false);
+                setSeasonT(Number(e.target.value));
+              }}
+            />
+            <div className="season-ends muted">
+              <span>{fmtDate(new Date(seasonRange.start).toISOString())}</span>
+              <span>{fmtDate(new Date(seasonRange.end).toISOString())}</span>
+            </div>
+          </div>
+          <strong className="season-date">{fmtDate(new Date(seasonT).toISOString())}</strong>
+          <div className="season-key">
+            <span className="season-gradient" style={{ background: seasonGradientCss() }} />
+            <div className="season-key-labels muted">
+              <span>Flooded (puddled)</span>
+              <span>Growing crop</span>
+            </div>
+            <span className="muted season-note">
+              <i className="season-nodata" /> no usable date · VV backscatter from each claim's decision evidence (
+              {seasonSources.map(([k, n]) => `${n} ${k === "sentinel1_real" ? "real" : k}`).join(", ")})
+            </span>
+          </div>
+        </div>
+      ) : null}
       <div className="map-legend">
         {Object.entries(STATUS_COLOR).map(([s, c]) => (
           <span key={s}>

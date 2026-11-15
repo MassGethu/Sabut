@@ -192,6 +192,11 @@ export default function App() {
           rank: i.rank,
           acres: i.claimed_acres,
           nextAction: i.next_action,
+          season: (details[i.claim_id].evidence?.observations ?? [])
+            .filter((o) => o.usable && o.vv !== null)
+            .map((o) => ({ t: Date.parse(o.acquired_at), vv: o.vv as number }))
+            .sort((x, y) => x.t - y.t),
+          seasonSource: details[i.claim_id].evidence?.source_kind,
         })),
     [queue, details],
   );
